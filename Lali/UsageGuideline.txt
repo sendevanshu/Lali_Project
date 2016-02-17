@@ -1,0 +1,7 @@
+if error comes while running that you need to manually configure asp.net 4.0
+then
+cd C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+aspnet_regiis -i
+
+
+<add name="AddressBookConnectionString" connectionString="Data Source=.\SQLEXPRESS;AttachDbFilename=|DataDirectory|\AddressBook.mdf;Integrated Security=True;User Instance=True" providerName="System.Data.SqlClient"/>
