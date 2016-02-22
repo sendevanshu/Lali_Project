@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8A779C62-B0DB-47E9-B3FE-4D2F25A674BA}</ProjectGuid>
+    <ProjectGuid>{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DataAccessLayer</RootNamespace>
-    <AssemblyName>DataAccessLayer</AssemblyName>
+    <RootNamespace>Models</RootNamespace>
+    <AssemblyName>Models</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,15 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdminDataAccess.cs" />
-    <Compile Include="UserDataAccess.cs" />
+    <Compile Include="AdminDetail.cs" />
+    <Compile Include="FlightDetail.cs" />
+    <Compile Include="FlightLegDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Models\Models.csproj">
-      <Project>{6eecdd81-1ea0-478c-b720-36ad0ae56c7d}</Project>
-      <Name>Models</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -93,9 +93,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\AdminDetail.cs" />
-    <Compile Include="Models\FlightDetail.cs" />
-    <Compile Include="Models\FlightLegDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -211,7 +208,9 @@
     <Content Include="Views\Admin\AdminPage.cshtml" />
     <Content Include="Views\Admin\AdminDashboard.cshtml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>
@@ -219,6 +218,10 @@
     <ProjectReference Include="..\Data Access\DataAccessLayer.csproj">
       <Project>{8a779c62-b0db-47e9-b3fe-4d2f25a674ba}</Project>
       <Name>DataAccessLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\Models.csproj">
+      <Project>{6eecdd81-1ea0-478c-b720-36ad0ae56c7d}</Project>
+      <Name>Models</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

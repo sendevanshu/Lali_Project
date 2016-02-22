@@ -1,5 +1,5 @@
 ﻿using DataAccessLayer;
-using OnlineAirTicketing.Models;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,6 +14,7 @@ namespace OnlineAirTicketing.Controllers
         //
         // GET: /Admin/
         UserDataAccess userDataAccess = new UserDataAccess(ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
+        AdminDataAccess adminDataAccess = new AdminDataAccess(ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
         public ActionResult AdminPage()
         {
             AdminDetail adminDetail = new AdminDetail();
@@ -24,7 +25,7 @@ namespace OnlineAirTicketing.Controllers
         public ActionResult ValidateAdmin(AdminDetail adminDetail)
         {
             string viewName = string.Empty;
-            bool isLoginSuccessful =  userDataAccess.validateAdminCred(adminDetail.username, adminDetail.password);
+            bool isLoginSuccessful = adminDataAccess.validateAdminCred(adminDetail.username, adminDetail.password);
             if (!isLoginSuccessful)
             {
                 adminDetail.errorMsg = "Invalid Username/Password";
@@ -36,6 +37,7 @@ namespace OnlineAirTicketing.Controllers
         public JsonResult AddFlight(FlightDetail flightDetail)
         {
             var data = new object();
+            int flightID = adminDataAccess.AddFlight(flightDetail);
             return Json(data);
 
         }

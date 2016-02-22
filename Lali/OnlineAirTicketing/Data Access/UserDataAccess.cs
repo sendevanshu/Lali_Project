@@ -58,46 +58,7 @@ namespace DataAccessLayer
 
         
 
-        public bool validateAdminCred(string usrname, string passwrd)
-        {
-            bool returnVal = false;
-            // Provide the query string with a parameter placeholder.
-            string queryString =
-                "SELECT username, password from dbo.T_Admin "
-                    + "WHERE password = @passwrd and username = @usrname ";
-
-            // Create and open the connection in a using block. This
-            // ensures that all resources will be closed and disposed
-            // when the code exits.
-            using (SqlConnection connection =
-                new SqlConnection(connectionString))
-            {
-                // Create the Command and Parameter objects.
-                SqlCommand command = new SqlCommand(queryString, connection);
-                command.Parameters.AddWithValue("@passwrd", passwrd);
-                command.Parameters.AddWithValue("@usrname", usrname);
-
-                // Open the connection in a try/catch block. 
-                // Create and execute the DataReader, writing the result
-                // set to the console window.
-                try
-                {
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        returnVal = true;
-                    }
-                    reader.Close();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-
-            }
-            return returnVal;
-        }
+        
     }
 }
 

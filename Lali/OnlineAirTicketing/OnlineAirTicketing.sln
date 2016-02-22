@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineAirTicketing", "Onlin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessLayer", "Data Access\DataAccessLayer.csproj", "{8A779C62-B0DB-47E9-B3FE-4D2F25A674BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{8A779C62-B0DB-47E9-B3FE-4D2F25A674BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A779C62-B0DB-47E9-B3FE-4D2F25A674BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A779C62-B0DB-47E9-B3FE-4D2F25A674BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EECDD81-1EA0-478C-B720-36AD0AE56C7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
