@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -59,25 +60,52 @@ namespace DataAccessLayer
 
         public int AddFlight(FlightDetail flightDetail)
         {
+            int flightId = 0;
             SqlConnection con = new SqlConnection(connectionString);
             SqlCommand cmd = new SqlCommand();
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.CommandText = "AddFlight";
-            cmd.Parameters.Add("@FlightNo", SqlDbType.VarChar).Value = txtFirstName.Text.Trim();
-            cmd.Parameters.Add("@Origin", SqlDbType.VarChar).Value = txtLastName.Text.Trim();
-            cmd.Parameters.Add("@Destination", SqlDbType.DateTime).Value = txtBirthDate.Text.Trim();
-            cmd.Parameters.Add("@NoOfLegs", SqlDbType.VarChar).Value = txtCity.Text.Trim();
-            cmd.Parameters.Add("@Distance", SqlDbType.VarChar).Value = txtCountry.Text.Trim();
-            cmd.Parameters.Add("@LastUpdateDate", SqlDbType.VarChar).Value = txtCountry.Text.Trim();
-            cmd.Parameters.Add("@ActiveInd", SqlDbType.VarChar).Value = txtCountry.Text.Trim();
+            cmd.Parameters.Add("@FlightNo", SqlDbType.VarChar).Value = flightDetail.flightNumber;
+            cmd.Parameters.Add("@Origin", SqlDbType.Char).Value = flightDetail.origin;
+            cmd.Parameters.Add("@Destination", SqlDbType.Char).Value = flightDetail.destination;
+            cmd.Parameters.Add("@NoOfLegs", SqlDbType.Int).Value = flightDetail.noOfLegs;
+            cmd.Parameters.Add("@Distance", SqlDbType.Float).Value = flightDetail.distance;
+            cmd.Parameters.Add("@LastUpdateDate", SqlDbType.DateTime).Value = DateTime.Now;
+            cmd.Parameters.Add("@ActiveInd", SqlDbType.Bit).Value = true;
             cmd.Parameters.Add("@flightId", SqlDbType.Int).Direction = ParameterDirection.Output;
             cmd.Connection = con;
             try
             {
                 con.Open();
                 cmd.ExecuteNonQuery();
-                string id = cmd.Parameters["@flightId"].Value.ToString();
-                lblMessage.Text = "Record inserted successfully. ID = " + id;
+                flightId = Convert.ToInt32(cmd.Parameters["@flightId"].Value);
+                foreach (FlightLegDetail flightLeg in flightDetail.flightLegs)
+                {
+                    DateTime duration = DateTime.ParseExact(flightLeg.duration, "HH:mm",
+                                        CultureInfo.InvariantCulture);
+                    DateTime arrivalTime = DateTime.ParseExact(flightLeg.arrivalTime, "HH:mm",
+                                        CultureInfo.InvariantCulture);
+                    DateTime departTime = DateTime.ParseExact(flightLeg.departTime, "HH:mm",
+                                        CultureInfo.InvariantCulture);
+                    cmd = new SqlCommand();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "AddFlightLeg";
+                    cmd.Parameters.Add("@FlightLegNo", SqlDbType.Int).Value = flightLeg.flightlegNo;
+                    cmd.Parameters.Add("@FlightId", SqlDbType.Int).Value = flightId;
+                    cmd.Parameters.Add("@Duration", SqlDbType.Time).Value = duration.ToString("hh:mm:ss", CultureInfo.CurrentCulture);
+                    cmd.Parameters.Add("@ArrivalTime", SqlDbType.Time).Value = arrivalTime.ToString("hh:mm:ss", CultureInfo.CurrentCulture);
+                    cmd.Parameters.Add("@DepartTime", SqlDbType.Time).Value = departTime.ToString("hh:mm:ss", CultureInfo.CurrentCulture);
+                    cmd.Parameters.Add("@DepartAirport", SqlDbType.Char).Value = flightLeg.departingAirport;
+                    cmd.Parameters.Add("@ArrivalAirport", SqlDbType.Char).Value = flightLeg.arrivalAirport;
+                    cmd.Parameters.Add("@BaseFare", SqlDbType.Float).Value = flightLeg.baseFare;
+                    cmd.Parameters.Add("@Origin", SqlDbType.Char).Value = flightLeg.legOrigin;
+                    cmd.Parameters.Add("@Destination", SqlDbType.Char).Value = flightLeg.legDestination;
+                    cmd.Parameters.Add("@LastUpdateDate", SqlDbType.DateTime).Value = DateTime.Now;
+                    cmd.Parameters.Add("@ActiveInd", SqlDbType.Bit).Value = true;
+                    cmd.Parameters.Add("@flightLegId", SqlDbType.Int).Direction = ParameterDirection.Output;
+                    cmd.Connection = con;
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (Exception ex)
             {
@@ -88,7 +116,7 @@ namespace DataAccessLayer
                 con.Close();
                 con.Dispose();
             }
-            throw new NotImplementedException();
+            return flightId;
         }
     }
 }

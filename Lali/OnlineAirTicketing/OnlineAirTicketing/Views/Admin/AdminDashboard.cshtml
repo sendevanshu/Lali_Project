@@ -77,8 +77,26 @@
                 data: JSON.stringify(flightDetail),
                 dataType: "json",
                 contentType: "application/json",
-                success: function (response) { alert(response); },
-                error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); }
+                success: function (response) {
+                    $('.success-err-msg').show().delay(5000).fadeOut();
+                    $('.success-err-msg').text('Flight Details added. Flight ID :' + response.flightID);
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    console.log(response);
+                    var elements = document.getElementsByTagName("input");
+                    //clearing all elements.
+                    for (var ii = 0; ii < elements.length; ii++) {
+                        if (elements[ii].type == "text") {
+                            elements[ii].value = "";
+                        }
+                    }
+                    $('.flight-leg-div').remove();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $('.success-err-msg').show().delay(5000).fadeOut();
+                    $('.success-err-msg').text('Error while submitting data. Please check data and submit again');
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    console.log(xhr.responseText);
+                }
             });
         }
 

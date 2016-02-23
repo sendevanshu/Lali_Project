@@ -36,9 +36,8 @@ namespace OnlineAirTicketing.Controllers
 
         public JsonResult AddFlight(FlightDetail flightDetail)
         {
-            var data = new object();
             int flightID = adminDataAccess.AddFlight(flightDetail);
-            return Json(data);
+            return Json(new { flightID = flightID },JsonRequestBehavior.AllowGet);
 
         }
     }
