@@ -2,12 +2,15 @@
     margin: 0 !important;
 }
 
+html {
+    background-color: #A4D3EE;
+}
 
 body
 {
     font-family: "Trebuchet MS", Verdana, Helvetica, Sans-Serif;
     color: #232323;
-    background-color: #fff;
+     background-color: #A4D3EE;
 }
 
 header,
@@ -86,3 +89,73 @@ textarea
     .login-box .app-label {
     }
 
+.flight-list-div {
+    margin-left: 250px;
+    width: 700px;
+}
+.flight-div {
+    width: 700px;
+    box-shadow: 5px 5px 5px #888888;
+    margin-bottom: 10px;
+    background-color: #E0EEEE;
+    padding: 10px;
+}
+.flight-div .detail {
+    display: inline-block;
+}
+
+.flight-list-div .delete-icon{
+    float: right;
+    cursor: pointer;
+}
+.menu-box {
+    margin: 20px;
+}
+
+.menu-box .menu{
+    width: 200px;
+    height: 50px;
+    box-shadow: 2px 2px 2px #888888;
+    background-color: #63D1F4;
+    color: #FFFFFF;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 15px;
+    margin-right: 100px;
+    cursor: pointer;
+}
+    .menu-box .navigation {
+        text-align: center;
+        margin-bottom: 50px;
+        margin-top: 50px;
+    }
+    .menu-box .menu:hover {
+        background-color: #0EBFE9;
+    }
+
+    .menu-box .menu.active {
+        background-color: #B0E0E6;
+        cursor: default;
+    }
+
+.admin.logintitle {
+    float: right;
+    color:white;
+}
+.admin .title {
+    display: inline-block;
+    margin: 10px;
+}
+.admin .user-sym {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-block;
+    background: blue;
+    padding: 6px;
+    text-align: center;
+    margin: 20px;
+    margin-left: 0;
+    cursor: pointer;
+}

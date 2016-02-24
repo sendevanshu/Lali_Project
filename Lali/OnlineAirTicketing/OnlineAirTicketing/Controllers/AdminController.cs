@@ -40,5 +40,33 @@ namespace OnlineAirTicketing.Controllers
             return Json(new { flightID = flightID },JsonRequestBehavior.AllowGet);
 
         }
+
+        public JsonResult GetFlights()
+        {
+            List<FlightDetail> flightList = adminDataAccess.GetFlights();
+            foreach (FlightDetail flight in flightList)
+            {
+                List<FlightLegDetail> flightLegList = adminDataAccess.GetFlightLegs(Convert.ToInt32(flight.flightID));
+                if (flightLegList != null && flightLegList.Count == flight.noOfLegs)
+                {
+                    flight.departTime = flightLegList[0].departTime;
+                    flight.arrivalTime = flightLegList[flight.noOfLegs - 1].arrivalTime;
+                }
+            }
+            return Json(flightList, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult DeleteFlight(int flightID)
+        {
+            bool res = adminDataAccess.DeleteFlight(flightID);
+            if (res)
+            {
+                return Json(new { returnCode = 1 }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { returnCode = -1 }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }

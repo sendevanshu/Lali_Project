@@ -13,6 +13,8 @@ namespace Models
         public float distance { get; set; }
         public int noOfLegs { get; set; }
         public List<FlightLegDetail> flightLegs { get; set; }
-
+        public string flightID { get; set; }
+        public string arrivalTime { get; set; }
+        public string departTime { get; set; }
     }
 }

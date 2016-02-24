@@ -118,5 +118,144 @@ namespace DataAccessLayer
             }
             return flightId;
         }
+
+        public List<FlightDetail> GetFlights()
+        {
+            List<FlightDetail> flightList = new List<FlightDetail>();
+            // Provide the query string with a parameter placeholder.
+            string queryString =
+                "SELECT FlightID, FlightNo, Origin, Destination, NoOfLegs, Distance"
+                + " from dbo.T_Flight"
+                + " where ActiveInd = 'true'";
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        FlightDetail flight = new FlightDetail();
+                        flight.flightID = Convert.ToString(reader[0]);
+                        flight.flightNumber = Convert.ToString(reader[1]);
+                        flight.origin = Convert.ToString(reader[2]);
+                        flight.destination = Convert.ToString(reader[3]);
+                        flight.distance = (float)Convert.ToDouble(reader[5]);
+                        flight.noOfLegs = Convert.ToInt32(reader[4]);
+                        flightList.Add(flight);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            }
+            return flightList;
+        }
+
+
+        public List<FlightLegDetail> GetFlightLegs(int flightID)
+        {
+            List<FlightLegDetail> flightLegList = new List<FlightLegDetail>();
+            // Provide the query string with a parameter placeholder.
+            string queryString =
+                "SELECT FlightLegID, FlightLegNo, Duration, ArrivalTime, DepartTime, DepartAirport,"
+                + "ArrivalAirport, BaseFare, Origin, Destination from dbo.T_FlightLeg"
+                + " where ActiveInd = 'true' and FlightID = @flightID";
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.AddWithValue("@flightID", flightID);
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        FlightLegDetail flightLeg = new FlightLegDetail();
+                        flightLeg.flightLegID = Convert.ToString(reader[0]);
+                        flightLeg.flightlegNo = Convert.ToString(reader[1]);
+                        flightLeg.duration = Convert.ToString(reader[2]);
+                        flightLeg.arrivalTime = Convert.ToString(reader[3]);
+                        flightLeg.departTime = Convert.ToString(reader[4]);
+                        flightLeg.departingAirport = Convert.ToString(reader[5]);
+                        flightLeg.arrivalAirport = Convert.ToString(reader[6]);
+                        flightLeg.baseFare = (float)Convert.ToDouble(reader[7]);
+                        flightLeg.legOrigin = Convert.ToString(reader[8]);
+                        flightLeg.legDestination = Convert.ToString(reader[9]);
+                        flightLegList.Add(flightLeg);
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            }
+            return flightLegList;
+        }
+
+        public bool DeleteFlight(int flightID)
+        {
+            bool result = false;
+            // Provide the query string with a parameter placeholder.
+            string queryString =
+                "update T_Flight set ActiveInd = 'false' where FlightID = @flightID";
+
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.AddWithValue("@flightID", flightID);
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    queryString = "update T_FlightLeg set ActiveInd = 'false' where FlightID = @flightID";
+
+                    command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@flightID", flightID);
+                    command.ExecuteNonQuery();
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            }
+            return result;
+        }
     }
 }

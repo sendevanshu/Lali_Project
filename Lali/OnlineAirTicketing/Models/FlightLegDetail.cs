@@ -16,5 +16,7 @@ namespace Models
         public string arrivalAirport { get; set; }
         public string legOrigin { get; set; }
         public string legDestination { get; set; }
+
+        public string flightLegID { get; set; }
     }
 }
