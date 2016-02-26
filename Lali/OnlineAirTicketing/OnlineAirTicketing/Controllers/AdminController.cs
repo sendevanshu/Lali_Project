@@ -31,6 +31,7 @@ namespace OnlineAirTicketing.Controllers
                 adminDetail.errorMsg = "Invalid Username/Password";
                 return View("AdminPage", adminDetail);
             }
+            System.Web.HttpContext.Current.Session["username"] = adminDetail.username; 
             return View("AdminDashboard");
         }
 
@@ -56,6 +57,28 @@ namespace OnlineAirTicketing.Controllers
             return Json(flightList, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult ModifyFlight(FlightDetail flightDetail)
+        {
+            List<FlightLegDetail> flightLegList = adminDataAccess.GetFlightLegs(Convert.ToInt32(flightDetail.flightID));
+            string departedFlightLegID = string.Empty;
+            string arrivalFlightLegID = string.Empty;
+
+            if (flightLegList != null && flightLegList.Count > 0)
+            {
+                departedFlightLegID = flightLegList[0].flightLegID;
+                arrivalFlightLegID = flightLegList[flightLegList.Count - 1].flightLegID;
+            }
+            bool res = adminDataAccess.ModifyFlight(flightDetail.flightID, departedFlightLegID, flightDetail.departTime, arrivalFlightLegID, flightDetail.arrivalTime);
+            if (res)
+            {
+                return Json(new { returnCode = 1 }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { returnCode = -1 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         public JsonResult DeleteFlight(int flightID)
         {
             bool res = adminDataAccess.DeleteFlight(flightID);
@@ -67,6 +90,14 @@ namespace OnlineAirTicketing.Controllers
             {
                 return Json(new { returnCode = -1 }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        public ActionResult LogOut()
+        {
+            System.Web.HttpContext.Current.Session.RemoveAll();
+            AdminDetail adminDetail = new AdminDetail();
+            adminDetail.errorMsg = string.Empty;
+            return View("AdminPage", adminDetail);
         }
     }
 }

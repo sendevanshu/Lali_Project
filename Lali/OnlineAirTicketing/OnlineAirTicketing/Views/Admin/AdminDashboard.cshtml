@@ -1,15 +1,19 @@
 ﻿@{
-    ViewBag.Title = "AdminDashboard";
+    ViewBag.Title = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="admin logintitle"><h5 class="title">Welcom Admin</h5><span title="Admin User" class="user-sym glyphicon glyphicon-user"></span></div>
+<form name="logOutForm" action="/Admin/LogOut"><div class="admin logintitle"><h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["username"])</h5><span title="Log Out" class="user-sym glyphicon glyphicon-user" onclick="logOut()" ></span></div></form>
 <script>
+    window.history.forward();
     $(document).ready(function () {
         $('.success-err-msg').hide();
         $('.success-err-msg-delete').hide();
     });
     
+    var logOut = function () {
+        document.logOutForm.submit();
+    }
         var changeTheView = function (view) {
             $('.action-div').hide();
             $('.menu').removeClass('active');
@@ -19,16 +23,18 @@
                     break;
                 case 'delete-flight': $('.delete-flight-div').show();
                     $('#deleteFlight').addClass('active');
-                    fetchAllFlight();
+                    fetchAllFlight('Delete');
                     break;
-                case 'modify-flight': $('.modify-flight-div').show();
+                case 'modify-flight': $('.delete-flight-div').show();
                     $('#modifyFlight').addClass('active');
+                    fetchAllFlight('Edit');
                     break;
             }
         };
 
 
-        var fetchAllFlight = function () {
+        var fetchAllFlight = function (actionToTake) {
+            
             $.ajax({
                 type: "GET",
                 url: "/Admin/GetFlights",
@@ -36,12 +42,25 @@
                 success: function (response) {
                     $('.flight-div').remove();
                     for (var count = 0; count < response.length; count++) {
-                        var temp = "<div class=\"flight-div\">\r\n                <span title=\"Delete Flight\" class=\"delete-icon glyphicon glyphicon-remove\"  onclick=\"deleteFlight(" + response[count].flightID + ")\"><\/span>\r\n      "
+                        var temp;
+                        if (actionToTake == 'Delete') {
+                            temp = "<div class=\"flight-div\">\r\n                <span title=\"Delete Flight\" class=\"delete-icon glyphicon glyphicon-remove\"  onclick=\"deleteFlight(" + response[count].flightID + ")\"><\/span>\r\n      "
                         + "          <h3><span>Flight No<\/span>&nbsp;<span>" + response[count].flightNumber + "<\/span><\/h6>\r\n          "
-                        + "   <div><div class=\"detail\">   <h6><span>Origin<\/span>&nbsp;<span>" + response[count].origin + "<\/span><\/h6>\r\n               "
-                        + " <h6><span>Destination<\/span>&nbsp;<span>" + response[count].destination + "<\/span><\/h6><\/div>\r\n             "
-                        + "  <div class=\"detail\"> <h6><span>Departure Time<\/span>&nbsp;<span>" + response[count].departTime + "<\/span><\/h6>\r\n  "
-                        + "<h6><span>Arrival Time<\/span>&nbsp;<span>" + response[count].arrivalTime + "<\/span><\/h6><\/div>\r\n            <\/div>";
+                        + "   <div><div class=\"detail\">   <h6><span class=\"label\">Origin<\/span>&nbsp;<span class=\"value\">" + response[count].origin + "<\/span><\/h6>\r\n               "
+                        + " <h6><span class=\"label\">Destination<\/span>&nbsp;<span class=\"value\">" + response[count].destination + "<\/span><\/h6><\/div>\r\n             "
+                        + "  <div class=\"detail\"> <h6><span class=\"label\">Departure Time<\/span>&nbsp;<span class=\"value\">" + response[count].departTime + "<\/span><\/h6>\r\n  "
+                        + "<h6><span class=\"label\">Arrival Time<\/span>&nbsp;<span class=\"value\">" + response[count].arrivalTime + "<\/span><\/h6><\/div>\r\n            <\/div>";
+                        }
+                        else if (actionToTake == 'Edit')
+                        {
+                            temp = "<div class=\"flight-div\" id=\"flightEdit-" + response[count].flightID + "\">\r\n                <span title=\"Modify Flight details\" class=\"delete-icon glyphicon glyphicon-pencil\"  onclick=\"modifyFlight(" + response[count].flightID + ")\"><\/span>\r\n      "
+                        + "          <h3><span>Flight No<\/span>&nbsp;<span>" + response[count].flightNumber + "<\/span><\/h6>\r\n          "
+                        + "   <div><div class=\"detail\">   <h6><span class=\"label\">Origin<\/span>&nbsp;<span class=\"value\">" + response[count].origin + "<\/span><\/h6>\r\n               "
+                        + " <h6><span class=\"label\">Destination<\/span>&nbsp;<span class=\"value\">" + response[count].destination + "<\/span><\/h6><\/div>\r\n             "
+                        + "  <div class=\"detail\"> <h6><span class=\"label\">Departure Time<\/span>&nbsp;<input class=\"value\" type=\"text\" id=\"editDepartTime\" value=\"" + response[count].departTime + "\" readonly \/><\/h6>\r\n  "
+                        + "<h6><span class=\"label\">Arrival Time<\/span>&nbsp;<input class=\"value\" type=\"text\" id=\"editArrivalTime\" value=\"" + response[count].arrivalTime + "\" readonly \/><\/h6><\/div>\r\n            <\/div>";
+                        }
+                        
 
                         $('.flight-list-div').append(temp);
                     }
@@ -53,6 +72,62 @@
             });
         }
 
+        var modifyFlight = function (flightID) {
+            
+            var selectedFlightDiv = $('#flightEdit-' + flightID);
+            if (selectedFlightDiv && selectedFlightDiv.length > 0) {
+                if(selectedFlightDiv.find('.glyphicon').hasClass('glyphicon-pencil'))
+                {
+                    selectedFlightDiv.find('.glyphicon').removeClass('glyphicon-pencil');
+                    selectedFlightDiv.find('.glyphicon').addClass('glyphicon-floppy-disk');
+                    selectedFlightDiv.find('.glyphicon').attr('title','Save Flight Details');
+                    selectedFlightDiv.find('#editDepartTime').prop("readonly", false);
+                    selectedFlightDiv.find('#editArrivalTime').prop("readonly", false);
+                }
+                else if (selectedFlightDiv.find('.glyphicon').hasClass('glyphicon-floppy-disk')) {
+                    selectedFlightDiv.find('.glyphicon').addClass('glyphicon-pencil');
+                    selectedFlightDiv.find('.glyphicon').removeClass('glyphicon-floppy-disk');
+                    selectedFlightDiv.find('.glyphicon').attr('title','Modify Flight Details');
+                    selectedFlightDiv.find('#editDepartTime').prop("readonly", true);
+                    selectedFlightDiv.find('#editArrivalTime').prop("readonly", true);
+                    var data = {};
+                    data.flightId = flightID;
+                    data.arrivalTime = selectedFlightDiv.find('#editArrivalTime').val();
+                    data.departTime = selectedFlightDiv.find("#editDepartTime").val();
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/ModifyFlight",
+                        data: JSON.stringify(data),
+                        dataType: "json",
+                        contentType: "application/json",
+                        success: function (response) {
+                            if (response.returnCode == 1) {
+
+                                $('.success-err-msg-delete').show().delay(5000).fadeOut();
+                                $('.success-err-msg-delete').text('Flight Details modified Successfully');
+                                $('.success-err-msg-delete').css('background-color', '#667C26'); //red #7E3817 //green #667C26
+                                fetchAllFlight('Edit');
+                            }
+                            else {
+                                $('.success-err-msg-delete').show().delay(5000).fadeOut();
+                                $('.success-err-msg-delete').text('Due to some technical issues, flight details cannot be modified.');
+                                $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                                fetchAllFlight('Edit');
+                                console.log(response);
+                            }
+
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            $('.success-err-msg-delete').show().delay(5000).fadeOut();
+                            $('.success-err-msg-delete').text('Due to some technical issues, flight details cannot be modified.');
+                            $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                            console.log(xhr.responseText);
+                        }
+                    });
+
+                }
+            }
+        }
         var deleteFlight = function(flightID)
         {
             var data = {};
@@ -68,11 +143,13 @@
 
                         $('.success-err-msg-delete').show().delay(5000).fadeOut();
                         $('.success-err-msg-delete').text('Flight Deleted Successfully');
-                        fetchAllFlight();
+                        $('.success-err-msg-delete').css('background-color', '#667C26'); //red #7E3817 //green #667C26
+                        fetchAllFlight('Delete');
                     }
                     else {
                         $('.success-err-msg-delete').show().delay(5000).fadeOut();
                         $('.success-err-msg-delete').text('Due to some technical issues, flight cannot be deleted now.');
+                        $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                         console.log(response);
                     }
                     
@@ -96,7 +173,7 @@
             else {
                 id = 1;
             }
-            var flightLegTemplate = " <div class=\"flight-leg-div\">\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <label id=\"flightleg-" + id + "\" class=\"flightleg-no\">Flight Leg " + id + "<\/label>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>FlightLeg Number<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"flightlegNum\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Duration (hh:mm format)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"duration\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departure Time (hh:mm format)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"departtime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Time (hh:mm format)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"arrivaltime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Base Fare (Rs)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"basefare\" \/><\/div>\r\n                    <\/div>\r\n                <\/div>\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departing Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"departingairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"arrivalairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Origin<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legorigin\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Destination<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legdestination\" \/><\/div>\r\n                <\/div>\r\n        <div class=\"col-xs-2\">\r\n                        <button onclick=\"removeFlightLeg("+ id +")\" class=\"btn btn-xs btn-primary\"><span class=\"glyphicon glyphicon-minus-sign\"><\/span>&nbsp;&nbsp;<span>Remove Flight Leg<\/span><\/button>\r\n                    <\/div>                   \r\n                <\/div>\r\n              <hr class=\"leg-template-end\" \/>\r\n            <\/div>";
+            var flightLegTemplate = " <div class=\"flight-leg-div\">\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <label id=\"flightleg-" + id + "\" class=\"flightleg-no\">Flight Leg " + id + "<\/label>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>FlightLeg Number<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"flightlegNum\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Duration<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"duration\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departure Time<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"departtime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Time<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"arrivaltime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Base Fare (Rs)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"basefare\" \/><\/div>\r\n                    <\/div>\r\n                <\/div>\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departing Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"departingairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"arrivalairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Origin<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legorigin\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Destination<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legdestination\" \/><\/div>\r\n                <\/div>\r\n        <div class=\"col-xs-2 button-remove\">\r\n                        <button onclick=\"removeFlightLeg("+ id +")\" class=\"btn btn-xs btn-primary\"><span class=\"glyphicon glyphicon-minus-sign\"><\/span>&nbsp;&nbsp;<span>Remove<\/span><\/button>\r\n                    <\/div>                   \r\n                <\/div>\r\n              <hr class=\"leg-template-end\" \/>\r\n            <\/div>";
             $('.flight-leg-placeholder').append(flightLegTemplate);
             
         }
@@ -130,6 +207,7 @@
                 }
                 else {
                     $('.success-err-msg').show().delay(5000).fadeOut();
+                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                     $('.success-err-msg').text('Please provide details for all the flight legs. Flight should have atleast one flight leg');
                     document.body.scrollTop = document.documentElement.scrollTop = 0;
                     return;
@@ -145,6 +223,7 @@
                 success: function (response) {
                     $('.success-err-msg').show().delay(5000).fadeOut();
                     $('.success-err-msg').text('Flight Details added. Flight ID :' + response.flightID);
+                    $('.success-err-msg').css('background-color', '#667C26'); //red #7E3817 //green #667C26
                     document.body.scrollTop = document.documentElement.scrollTop = 0;
                     console.log(response);
                     var elements = document.getElementsByTagName("input");
@@ -159,6 +238,7 @@
                 error: function (xhr, ajaxOptions, thrownError) {
                     $('.success-err-msg').show().delay(5000).fadeOut();
                     $('.success-err-msg').text('Error while submitting data. Please check data and submit again');
+                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                     document.body.scrollTop = document.documentElement.scrollTop = 0;
                     console.log(xhr.responseText);
                 }
@@ -177,6 +257,7 @@
                 else {
                     $('.success-err-msg').show().delay(5000).fadeOut();
                     $('.success-err-msg').text('Remove the last Flight Leg first.');
+                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                     document.body.scrollTop = document.documentElement.scrollTop = 0;
                 }
             }
@@ -193,9 +274,9 @@
 </div>
 
 <div class="row action-template">
-    <div class="row add-flight-div action-div">
-        <div class="row alert alert-info success-err-msg"></div>
-        <div class="row">
+    <div class="add-flight-div action-div">
+        <div class="alert alert-info success-err-msg"></div>
+        <div class="flight-detail">
             <div class="col-xs-2">
                 <div class="row"><span>Flight Number</span></div>
                 <div class="row">
@@ -226,11 +307,11 @@
                     <input type="text" id="legnum" />
                 </div>
             </div>
-            <div class="col-xs-2">
-                <div class="row">
+            <div class="col-xs-2 button-grp">
+                <div class="">
                     <button onclick="addFlightLeg()" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<span>Add Flight Leg</span></button>
                 </div>
-                <div class="row">
+                <div class="">
                     <button class="btn btn-xs btn-primary" onclick="addFlight()"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<span>Add Flight</span></button>
                 </div>
                 
@@ -244,7 +325,7 @@
         </div>
     </div>
     <div class="row delete-flight-div action-div">
-        <div class="row alert alert-info success-err-msg-delete"></div>
+        <div class="alert alert-info success-err-msg-delete"></div>
         <div class="flight-list-div">
             
         </div>
