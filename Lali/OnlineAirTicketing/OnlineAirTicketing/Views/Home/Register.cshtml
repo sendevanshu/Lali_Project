@@ -1,0 +1,93 @@
+﻿@model Models.UserDetail
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+    $(document).ready(function () {
+        var errorMessage = "@Model.errorMsg";
+        if (errorMessage !== "") {
+            $('.message').show().delay(5000).fadeOut();
+            $('.message').text(errorMessage);
+        }
+        else {
+            $('.message').hide();
+        }
+        
+    });
+   
+
+</script>
+<div class="col-xs-12 login-box register-box">
+    <div class="box-title">Register User</div>
+    <div class="message alert alert-info"></div>
+    <div class="box-detail">
+        <form method="post" action="/Home/Register">
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Username</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" name="username" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Password</span></div>
+                <div class="col-xs-8">
+                    <input type="password" class="value" name="password" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Confirm Password</span></div>
+                <div class="col-xs-8">
+                    <input type="password" class="value" name="confirmPassword" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Name</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" name="personName" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Contact No.</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" name="contactNumber" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Address</span></div>
+                <div class="col-xs-8">
+                    <textarea name="address" class="value"  maxlength="150"></textarea></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Gender</span></div>
+                <div class="col-xs-8">
+                    <input type="radio" class="value" value="male" name="gender" />
+                    Male
+                    <input type="radio" class="value" value="female" name="gender" />
+                    Female </div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Security Question</span></div>
+                <div class="col-xs-8">
+                    <select name="securityQues">
+                        <option value="What is the name of your favorite pet?">What is the name of your favorite pet?</option>
+                        <option value="In what city were you born?">In what city were you born?</option>
+                        <option value="What high school did you attend?">What high school did you attend?</option>
+                        <option value="What is the name of your first school?">What is the name of your first school?</option>
+                        <option value="What is your favorite movie?">What is your favorite movie?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What street did you grow up on?">What street did you grow up on?</option>
+                    </select>
+
+                </div>
+                
+            </div>
+            <div class="col-xs-12 login-row">
+                    <div class="col-xs-4"><span class="app-label">Security Answer</span></div>
+                    <div class="col-xs-8">
+                        <input type="password" class="value" name="securityAns" /></div>
+                </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-6">
+                    <input type="reset" value="Reset" class="btn btn-sm btn-primary" /></div>
+                <div class="col-xs-6">
+                    <input type="submit" class="btn btn-sm btn-primary pull-right" /></div>
+            </div>
+        </form>
+    </div>
+</div>

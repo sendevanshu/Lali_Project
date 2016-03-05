@@ -2,5 +2,138 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<script>
+    $(document).ready(function () {
+        var errorMessage = "@TempData["errorMessage"]";
+        if (errorMessage !== "") {
+            $('.message').show().delay(5000).fadeOut();
+            $('.message').text(errorMessage);
+        }
+        else {
+            $('.message').hide();
+        }
+        
+    });
+   
 
-<h2>Index</h2>
+</script>
+
+<div class="view-box">
+    <div class="message alert alert-info homepage-error"></div>
+    <div>
+        <div class="view-box-column">
+            <div class="col-xs-12 login-box">
+                <div class="box-title">Flight Search</div>
+
+                <div class="box-detail">
+                    <form method="post" action="/Home/SearchFlight">
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">From</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="from" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">To</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="to" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <div class="app-label">Departure</div>
+                                <div class="value">
+                                    <input type="date" style="width: 140px; margin-left: -20px;" name="departdate" /></div>
+                            </div>
+                            <div class="col-xs-6">
+                                <div class="app-label">Return</div>
+                                <div class="value">
+                                    <input type="date" style="width: 140px; margin-left: -10px;" name="returndate" /></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <input type="reset" value="Reset" class="btn btn-sm btn-primary" />
+                            </div>
+                            <div class="col-xs-6">
+                                <input type="submit" class="btn btn-sm btn-primary pull-right" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="view-box-column">
+            <div class="col-xs-12 login-box">
+                <div class="box-title">View/Download Ticket</div>
+                <div class="box-detail">
+                    <form method="post" action="/Admin/ValidateAdmin">
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">Email ID</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="username" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">Mobile Number</span></div>
+                            <div class="col-xs-8">
+                                <input type="password" class="value" name="password" />
+                            </div>
+                        </div>
+                        <div class="login-row centered-text">---------OR-----------</div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">Booking ID</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="username" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <input type="reset" value="Reset" class="btn btn-sm btn-primary" />
+                            </div>
+                            <div class="col-xs-6">
+                                <input type="submit" class="btn btn-sm btn-primary pull-right" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="view-box-column">
+            <div class="col-xs-12 login-box no-border">
+                <div class="box-title">User Login</div>
+               
+                <div class="box-detail">
+                    <form method="post" action="/Home/ValidateUser">
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">Username</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="username" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">Password</span></div>
+                            <div class="col-xs-8">
+                                <input type="password" class="value" name="password" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <input type="reset" value="Reset" class="btn btn-sm btn-primary" />
+                            </div>
+                            <div class="col-xs-6">
+                                <input type="submit" class="btn btn-sm btn-primary pull-right" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6"><span class="app-label"><a href="/Home/Register">Register</a></span></div>
+                            <div class="col-xs-6">
+                                <span class="app-label"><a href="#">Forget Password</a></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

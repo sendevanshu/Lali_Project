@@ -1,15 +1,25 @@
-﻿@{
-    ViewBag.Title = "Admin Dashboard";
+﻿@model Models.UserDetail
+@{
+    ViewBag.Title = "User Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<form name="logOutForm" action="/Admin/LogOut"><div class="admin logintitle"><h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["username"])</h5><span title="Log Out" class="user-sym glyphicon glyphicon-user" onclick="logOut()" ></span></div></form>
+<form name="logOutForm" action="/Home/LogOut"><div class="admin logintitle"><h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["name"])</h5><span title="Log Out" class="user-sym glyphicon glyphicon-user" onclick="logOut()" ></span></div></form>
 <script>
     window.history.forward();
     $(document).ready(function () {
+        var errorMessage = "@Model.errorMsg";
+        if (errorMessage !== "") {
+            $('.message').show().delay(5000).fadeOut();
+            $('.message').text(errorMessage);
+        }
+        else {
+            $('.message').hide();
+        }
+
         $('.success-err-msg').hide();
         $('.success-err-msg-delete').hide();
-        changeTheView('add-flight');
+        changeTheView('updateInfo');
     });
     
     var logOut = function () {
@@ -19,21 +29,21 @@
             $('.action-div').hide();
             $('.menu').removeClass('active');
             switch (view) {
-                case 'add-flight': $('.add-flight-div').show();
-                    $('#addFlight').addClass('active');
+                case 'searchFlight': $('.search-flight-div').show();
+                    $('#searchFlight').addClass('active');
                     break;
-                case 'delete-flight': $('.delete-flight-div').show();
-                    $('#deleteFlight').addClass('active');
+                case 'viewTicket': $('.view-ticket-div').show();
+                    $('#viewTicket').addClass('active');
                     fetchAllFlight('Delete');
                     break;
-                case 'modify-flight': $('.delete-flight-div').show();
-                    $('#modifyFlight').addClass('active');
+                case 'updateInfo': $('.update-info-div').show();
+                    $('#updateInfo').addClass('active');
                     fetchAllFlight('Edit');
                     break;
             }
         };
 
-        
+
         var fetchAllFlight = function (actionToTake) {
             
             $.ajax({
@@ -268,68 +278,107 @@
 
 <div class="row menu-box">
     <div class="navigation">
-        <div class="menu active" id="addFlight"  onclick="changeTheView('add-flight')"><span class="glyphicon glyphicon-plus">&nbsp;</span><span class="title">Add Flight</span></div>
-        <div class="menu" id="deleteFlight" onclick="changeTheView('delete-flight')"><span class="glyphicon glyphicon-remove">&nbsp;</span><span class="title" >Delete Flight</span></div>
-        <div class="menu" id="modifyFlight" onclick="changeTheView('modify-flight')"><span class="glyphicon glyphicon-pencil">&nbsp;</span><span class="title" >Modify Flight</span></div>
+        <div class="menu active" id="updateInfo" onclick="changeTheView('updateInfo')"><span class="glyphicon glyphicon-pencil">&nbsp;</span><span class="title" >Update Info</span></div>
+        <div class="menu" id="searchFlight"  onclick="changeTheView('searchFlight')"><span class="glyphicon glyphicon-search">&nbsp;</span><span class="title">Search Flight</span></div>
+        <div class="menu" id="viewTicket" onclick="changeTheView('viewTicket')"><span class="glyphicon glyphicon-cog">&nbsp;</span><span class="title" >Manage Booking</span></div>
     </div>
 </div>
 
 <div class="row action-template">
-    <div class="add-flight-div action-div">
+    <div class="search-flight-div action-div">
         <div class="alert alert-info success-err-msg"></div>
         <div class="flight-detail">
-            <div class="col-xs-2">
-                <div class="row"><span>Flight Number</span></div>
-                <div class="row">
-                    <input type="text" id="flightNum" />
+            <div class="col-xs-12 login-box">
+                <div class="box-title">Flight Search</div>
+                <div class="box-detail">
+                    <form method="post" action="/Home/SearchFlight">
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">From</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="from" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-4"><span class="app-label">To</span></div>
+                            <div class="col-xs-8">
+                                <input type="text" class="value" name="to" />
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <div class="app-label">Departure</div>
+                                <div class="value">
+                                    <input type="date" style="width: 140px; margin-left: -20px;" name="departdate" /></div>
+                            </div>
+                            <div class="col-xs-6">
+                                <div class="app-label">Return</div>
+                                <div class="value">
+                                    <input type="date" style="width: 140px; margin-left: -10px;" name="returndate" /></div>
+                            </div>
+                        </div>
+                        <div class="col-xs-12 login-row">
+                            <div class="col-xs-6">
+                                <input type="reset" value="Reset" class="btn btn-sm btn-primary" />
+                            </div>
+                            <div class="col-xs-6">
+                                <input type="submit" class="btn btn-sm btn-primary pull-right" />
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div class="col-xs-2">
-                <div class="row"><span>Origin</span></div>
-                <div class="row">
-                    <input type="text" id="origin" />
-                </div>
-            </div>
-            <div class="col-xs-2">
-                <div class="row"><span>Destination</span></div>
-                <div class="row">
-                    <input type="text" id="destination" />
-                </div>
-            </div>
-            <div class="col-xs-2">
-                <div class="row"><span>Distance (Kms)</span></div>
-                <div class="row">
-                    <input type="text" id="distance" />
-                </div>
-            </div>
-            <div class="col-xs-2">
-                <div class="row"><span>Number of Legs</span></div>
-                <div class="row">
-                    <input type="text" id="legnum" />
-                </div>
-            </div>
-            <div class="col-xs-2 button-grp">
-                <div class="">
-                    <button onclick="addFlightLeg()" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<span>Add Flight Leg</span></button>
-                </div>
-                <div class="">
-                    <button class="btn btn-xs btn-primary" onclick="addFlight()"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<span>Add Flight</span></button>
-                </div>
-                
-            </div>
-        </div>
-        <div class="row flight-leg-placeholder">
-        </div>
-        <div class="row">
-            <div class="col-xs-10"></div>
-                
         </div>
     </div>
-    <div class="row delete-flight-div action-div">
+    <div class="row view-ticket-div action-div">
         <div class="alert alert-info success-err-msg-delete"></div>
         <div class="flight-list-div">
             
         </div>
     </div>
-    <div class="row modify-flight-div action-div"></div>
+    <div class="row update-info-div action-div">
+        <div class="col-xs-12 login-box register-box">
+    <div class="box-title">Update Info</div>
+    <div class="message alert alert-info"></div>
+    <div class="box-detail">
+        <form method="post" action="/Home/UpdateInfo">
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Username</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" readonly="true" name="username" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Password</span></div>
+                <div class="col-xs-8">
+                    <input type="password" class="value" name="password" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Confirm Password</span></div>
+                <div class="col-xs-8">
+                    <input type="password" class="value" name="confirmPassword" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Name</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" name="personName" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Contact No.</span></div>
+                <div class="col-xs-8">
+                    <input type="text" class="value" name="contactNumber" /></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-4"><span class="app-label">Address</span></div>
+                <div class="col-xs-8">
+                    <textarea name="address" class="value"  maxlength="150"></textarea></div>
+            </div>
+            <div class="col-xs-12 login-row">
+                <div class="col-xs-6">
+                    <input type="reset" value="Reset" class="btn btn-sm btn-primary" /></div>
+                <div class="col-xs-6">
+                    <input type="submit" class="btn btn-sm btn-primary pull-right" /></div>
+            </div>
+        </form>
+    </div>
+</div>
+    </div>
 </div>

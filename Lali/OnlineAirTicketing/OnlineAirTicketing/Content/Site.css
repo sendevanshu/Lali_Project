@@ -6,6 +6,10 @@ html {
     background-color: #A4D3EE;
 }
 
+textarea {
+    resize: none;
+}
+
 body
 {
     font-family: "Trebuchet MS", Verdana, Helvetica, Sans-Serif;
@@ -92,6 +96,7 @@ textarea
 .flight-list-div {
     margin-left: 250px;
     width: 700px;
+    margin-bottom: 100px;
 }
 .flight-div {
     width: 700px;
@@ -205,8 +210,80 @@ textarea
 padding: 5px;
     color: white;
     background-color: #800517;
+        padding-left: 10px;
+    padding-right: 10px;
 }
     .alert.alert-info.success-err-msg-delete {
         width: 700px;
         margin-left: 250px;
     }
+    .alert.alert-info.homepage-error {
+        margin-bottom: 5px;
+    }
+
+.login-box {
+    
+    margin-left: 450px;
+    margin-top: 200px;
+    position: relative;
+    display: inline-block;
+    width: 340px;
+    box-shadow: 2px 2px 2px #888888;
+    background-color: #E0EEEE;
+    padding: 20px;
+    
+}
+
+.register-box {
+    width: 500px;
+    margin-top: 80px;
+}
+
+.box-title {
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.box-detail {
+    margin-top: 10px;
+}
+
+    .box-detail .login-row {
+        margin-bottom: 10px;
+    }
+    .box-detail .login-row.centered-text {
+        text-align: center;
+    }
+
+.view-box {
+        
+    display: inline-block;
+    padding: 10px;
+    margin-left: 100px;
+    margin-top: 100px;
+    width: 1060px;
+    box-shadow: 2px 2px 2px #888888;
+    background-color: #E0EEEE;
+    border-radius: 25px;
+}
+.view-box .login-box {
+    margin: 0;
+    /* width: 350px; */
+    box-shadow: 0 0 0;
+    border-right: 1px dashed #000;
+    height: 300px;
+}
+
+    .view-box .login-box.no-border {
+    border-right: none;
+    }
+
+.flight-detail .login-box {
+    margin-top: 40px;
+}
+
+.action-div .register-box {
+    margin-top: 40px;
+}
