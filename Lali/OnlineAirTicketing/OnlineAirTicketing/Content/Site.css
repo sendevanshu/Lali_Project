@@ -355,3 +355,27 @@ padding: 5px;
     .view-ticket .btn-primary {
         float: right;
     }
+
+.ticket-list-div .download-icon, .ticket-list-div .delete-icon {
+    float: right;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.view-ticket-list-div {
+width: 700px;
+    box-shadow: 5px 5px 5px #888888;
+    margin-bottom: 10px;
+    background-color: #E0EEEE;
+    padding: 10px;
+}
+
+    .view-ticket-list-div .ticket-detail {
+        margin-top: 20px;
+    }
+
+.ticket-list-div {
+     margin-left: 250px;
+    width: 700px;
+    margin-bottom: 100px;
+}

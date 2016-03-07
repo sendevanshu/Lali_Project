@@ -25,6 +25,7 @@
         $('.calculation-detail').show();
         $('.success-msg').hide();
         $('.success-err-msg').hide();
+        $('.success-flight-msg').hide();
         getFlightDetails();
         var userId = "@Convert.ToString(System.Web.HttpContext.Current.Session["name"])";
         if (userId == "") {
@@ -183,35 +184,44 @@
             dataType: "json",
             success: function (response) {
                 $('.depart-flight').empty();
-                for (var count = 0; count < response.length; count++) {
-                    var departFlight = "<div class=\"flights-div\" id=\"departFlight-" + response[count].flightID + "\" ><div class=\"col-xs-2\">\r\n      "
-                        + "<input type=\"radio\" value=\"" + response[count].flightID + "\" name=\"flights\" onchange=\"calculate(" + response[count].flightID
-                        +")\" \/><\/div>\r\n   "
-                        + "<div class=\"col-xs-10\">\r\n      "
-                        + "<h5 class=\"flight\"><span>" + response[count].origin + " (" + response[count].departTime + ")<\/span>"
-                    + "-------------<span class=\"glyphicon glyphicon-plane\" "
-                    + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
-                    + "<span> " + response[count].destination + " (" + response[count].arrivalTime + ")<\/span><\/h5>\r\n          ";
+                if (response && response.length > 0) {
+                    for (var count = 0; count < response.length; count++) {
+                        var departFlight = "<div class=\"flights-div\" id=\"departFlight-" + response[count].flightID + "\" ><div class=\"col-xs-2\">\r\n      "
+                            + "<input type=\"radio\" value=\"" + response[count].flightID + "\" name=\"flights\" onchange=\"calculate(" + response[count].flightID
+                            + ")\" \/><\/div>\r\n   "
+                            + "<div class=\"col-xs-10\">\r\n      "
+                            + "<h5 class=\"flight\"><span>" + response[count].origin + " (" + response[count].departTime + ")<\/span>"
+                        + "-------------<span class=\"glyphicon glyphicon-plane\" "
+                        + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                        + "<span> " + response[count].destination + " (" + response[count].arrivalTime + ")<\/span><\/h5>\r\n          ";
 
-                    var departFlightLeg = "";
-                    for (var leg = 0; leg < response[count].flightLegs.length; leg++) {
-                        departFlightLeg += "<h6 class=\"flight-leg\"><span>" + response[count].flightLegs[leg].legOrigin + " (" + response[count].flightLegs[leg].departTime + ")<\/span>"
-                    + "--------<span class=\"glyphicon glyphicon-plane\" "
-                    + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
-                    + "<span> " + response[count].flightLegs[leg].legDestination + " (" + response[count].flightLegs[leg].arrivalTime + ")<\/span><\/h6>\r\n          <input type=\"hidden\" name=\"basefare\" value=\"" +
-                        response[count].flightLegs[leg].baseFare + "\" \/>  <input type=\"hidden\" class=\"flightlegId\" value=\"" +
-                        response[count].flightLegs[leg].flightLegID + "\" \/>";
+                        var departFlightLeg = "";
+                        for (var leg = 0; leg < response[count].flightLegs.length; leg++) {
+                            departFlightLeg += "<h6 class=\"flight-leg\"><span>" + response[count].flightLegs[leg].legOrigin + " (" + response[count].flightLegs[leg].departTime + ")<\/span>"
+                        + "--------<span class=\"glyphicon glyphicon-plane\" "
+                        + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                        + "<span> " + response[count].flightLegs[leg].legDestination + " (" + response[count].flightLegs[leg].arrivalTime + ")<\/span><\/h6>\r\n          <input type=\"hidden\" name=\"basefare\" value=\"" +
+                            response[count].flightLegs[leg].baseFare + "\" \/>  <input type=\"hidden\" class=\"flightlegId\" value=\"" +
+                            response[count].flightLegs[leg].flightLegID + "\" \/>";
 
+                        }
+
+                        var endText = " <\/div><\/div>";
+                        var flightDetail = departFlight + departFlightLeg + endText;
+
+                        $('.depart-flight').append(flightDetail);
                     }
-
-                    var endText = " <\/div><\/div>";
-                    var flightDetail = departFlight + departFlightLeg + endText;
-
-                    $('.depart-flight').append(flightDetail);
+                }
+                else {
+                    $('.success-flight-msg').show().delay(5000).fadeOut();
+                    $('.success-flight-msg').text('No Departing flights found on the selected route and date.');
+                    $('.success-flight-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                 }
             },
             error: function (xhr, ajaxOptions, thrownError) {
-
+                $('.success-flight-msg').show().delay(5000).fadeOut();
+                $('.success-flight-msg').text('No Departing flights found on the selected route and date.');
+                $('.success-flight-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                 console.log(xhr.responseText);
             }
         });
@@ -267,6 +277,8 @@
                     $('.cost-detail').removeClass('col-xs-4');
                     $('.departure-detail').addClass('col-xs-6');
                     $('.cost-detail').addClass('col-xs-6');
+
+                    
                 }
                 
             },
@@ -279,6 +291,7 @@
 </script>
 
 <div class="searched-flight-detail">
+    <div class="alert alert-info success-flight-msg"></div>
     <div class="depart-flight col-xs-6">
         @*<div class="flights-div">
             <div class="col-xs-2">

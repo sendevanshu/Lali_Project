@@ -4,7 +4,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<form name="logOutForm" action="/Home/LogOut"><div class="admin logintitle"><h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["name"])</h5><span title="Log Out" class="user-sym glyphicon glyphicon-user" onclick="logOut()" ></span></div></form>
+<form name="logOutForm" action="/Home/LogOut">
+    <div class="admin logintitle">
+        <h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["name"])</h5>
+        <span title="Log Out" class="user-sym glyphicon glyphicon-user" onclick="logOut()"></span></div>
+</form>
 <script>
     window.history.forward();
     $(document).ready(function () {
@@ -19,7 +23,7 @@
 
         $('.success-err-msg').hide();
         $('.success-err-msg-delete').hide();
-
+        $('.success-err-msg-cancel').hide();
         //check which view to render
         var viewName = "@TempData["viewName"]";
         if (viewName == 'searchFlight') {
@@ -31,40 +35,40 @@
         else {
             changeTheView('updateInfo');
         }
-        
+
     });
-    
+
     var logOut = function () {
         document.logOutForm.submit();
     }
-        var changeTheView = function (view) {
-            $('.action-div').hide();
-            $('.menu').removeClass('active');
-            switch (view) {
-                case 'searchFlight': $('.search-flight-div').show();
-                    $('#searchFlight').addClass('active');
-                    break;
-                case 'viewTicket': $('.view-ticket-div').show();
-                    $('#viewTicket').addClass('active');
-                    fetchAllFlight('Delete');
-                    break;
-                case 'updateInfo': $('.update-info-div').show();
-                    $('#updateInfo').addClass('active');
-                    fetchUserDetail();
-                    break;
-            }
-        };
+    var changeTheView = function (view) {
+        $('.action-div').hide();
+        $('.menu').removeClass('active');
+        switch (view) {
+            case 'searchFlight': $('.search-flight-div').show();
+                $('#searchFlight').addClass('active');
+                break;
+            case 'viewTicket': $('.view-ticket-div').show();
+                $('#viewTicket').addClass('active');
+                viewTickets();
+                break;
+            case 'updateInfo': $('.update-info-div').show();
+                $('#updateInfo').addClass('active');
+                fetchUserDetail();
+                break;
+        }
+    };
 
 
-        
-        var fetchUserDetail = function () {
-            var userID = "@Convert.ToString(System.Web.HttpContext.Current.Session["userID"])";
+
+    var fetchUserDetail = function () {
+        var userID = "@Convert.ToString(System.Web.HttpContext.Current.Session["userID"])";
             var dataToSend = {};
             dataToSend.userID = userID;
 
             $.ajax({
                 type: "GET",
-                url: "/Home/GetUserInfo?userID="+userID,
+                url: "/Home/GetUserInfo?userID=" + userID,
                 dataType: "json",
                 contentType: "application/json",
                 success: function (response) {
@@ -89,13 +93,112 @@
                 }
             });
         }
+
+
+    var cancelTicket = function (pnrno) {
+        $.ajax({
+            type: "GET",
+            url: "/Home/CancelBooking?pnrno="+pnrno,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                if (response) {
+                    $('.success-err-msg-cancel').show().delay(5000).fadeOut();
+                    $('.success-err-msg-cancel').text('Ticket cancelled successfully. Amount will be reverted back to bank within 5 working days.');
+                    $('.success-err-msg-cancel').css('background-color', '#667C26'); //red #7E3817 //green #667C26
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    viewTickets();
+                }
+                else {
+                    $('.success-err-msg-cancel').show().delay(5000).fadeOut();
+                    $('.success-err-msg-cancel').text('Due to some technical issues, ticket cannot be cancelled.');
+                    $('.success-err-msg-cancel').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    return;
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('.success-err-msg-cancel').show().delay(5000).fadeOut();
+                $('.success-err-msg-cancel').text('Due to some technical issues, ticket cannot be cancelled.');
+                $('.success-err-msg-cancel').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                document.body.scrollTop = document.documentElement.scrollTop = 0;
+                return;
+            }
+        });
+    }
+
+    var downloadTicket = function (divID) {
+        var selectedDiv = $("#"+divID);
+        var departingFlight = selectedDiv.find('.depart-flight-time')[0].innerHTML;
+        var returnFlight = selectedDiv.find('.return-flight-time')[0].innerHTML;
+        var passengerName = selectedDiv.find('#passenger-name').text();
+        var pnrdetail = selectedDiv.find('#pnr-detail').text();
+        var departDate = selectedDiv.find('#departDate').text();
+        var returnDate = selectedDiv.find('#returnDate').text();
+        var csspath = "@Url.Content("~\\Content\\Site.css")";
+        var preData = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <meta charset=\"utf-8\" \/>\r\n    <title>Print Page<\/title>\r\n    \r\n    <link href=\"..\/..\/Content\/css\/bootstrap.css\" rel=\"stylesheet\"  type=\"text/css\" media=\"screen,print\" \/>\r\n    <link href=\"" + csspath + "\" rel=\"stylesheet\" type=\"text\/css\" media=\"screen,print\" \/><\/head><body>";
+        var data = "<div class=\"view-ticket\">\r\n    <div class=\"ticket-detail\">\r\n   " +
+            "<h5>" + departingFlight + "<\/h5>\r\n      " +
+            "<h5><span>" + passengerName + "<\/span>&nbsp;&nbsp;&nbsp;&nbsp;<span>" + departDate + "<\/span>" +
+            "<span style=\"float:right;\" >" + pnrdetail + "<\/span>&nbsp; <\/h5>\r\n    <\/div>\r\n        <\/div>\r\n      " +
+            "<div class=\"view-ticket\">\r\n    <div class=\"ticket-detail\">\r\n        <h5>" + returnFlight + "<\/h5>\r\n       " +
+            "<h5><span>" + passengerName + "<\/span>&nbsp;&nbsp;&nbsp;&nbsp;<span>" + returnDate + "<\/span> " +
+            "<span style=\"float:right;\">" + pnrdetail + "<\/span>&nbsp; <\/h5>\r\n    <\/div>\r\n            <\/div><div class=\"view-ticket\">\r\n<input type=\"button\" class=\"btn btn-small btn-primary\" value=\"Print\" onclick=\"window.print()\"\/>\r\n<\/div>";
+        var postData = "<\/body><\/html>";
+        var win = window.open('', 'Print Page', 'height=400,width=600');
+        win.document.write(preData + data + postData);
+    }
+        var viewTickets = function () {
+            $.ajax({
+                type: "GET",
+                url: "/Home/GetBookingsForUser",
+                dataType: "json",
+                contentType: "application/json",
+                success: function (response) {
+                    $('.ticket-list-div').empty();
+                    if (response) {
+                        for (var count = 0; count < response.length; count++) {
+                            var data = "<div class=\"view-ticket-list-div\" id=\""+response[count].departureFlight.pnrno+"\">\r\n      " +
+                            "<span title=\"Delete Flight\" class=\"delete-icon glyphicon glyphicon-remove\" onclick=\"cancelTicket('" + response[count].departureFlight.pnrno + "')\">" +
+                            "<\/span><span title=\"Download Ticket\" class=\"download-icon glyphicon glyphicon-download-alt\" onclick=\"downloadTicket('" + response[count].departureFlight.pnrno + "')\">" +
+                            "<\/span>\r\n                <div class=\"ticket-detail\">\r\n                    <h5 class=\"depart-flight-time\">" +
+                            "<span>" + response[count].departureFlight.from + " (" + response[count].departureFlight.departTime + ")<\/span>    ----------------------------------------------------------------------<span class=\"glyphicon glyphicon-plane\" style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>" +
+                            "<span>" + response[count].departureFlight.to + " (" + response[count].departureFlight.arrivalTime + ")<\/span><\/h5>\r\n                   " +
+                            " <h5 class=\"return-flight-time\"><span>" + response[count].returnFlight.from + " (" + response[count].returnFlight.departTime + ")<\/span>    ----------------------------------------------------------------------<span class=\"glyphicon glyphicon-plane\" style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>" +
+                            "<span>" + response[count].returnFlight.to + " (" + response[count].returnFlight.arrivalTime + ")<\/span><\/h5>\r\n                    " +
+                            "<h5><span id=\"passenger-name\">" + response[count].departureFlight.passengerName + "<\/span>&nbsp;&nbsp; PNR: <span id=\"pnr-detail\">" + response[count].departureFlight.pnrno + "<\/span>" +
+                            "&nbsp;&nbsp;Amount: <span id=\"amount\">" + response[count].departureFlight.amount + "<\/span>" +
+                            "&nbsp;&nbsp; Departs :<span id=\"departDate\">" + response[count].departureFlight.travelDate + "<\/span>&nbsp;&nbsp;" +
+                            " Arrives : <span id=\"returnDate\">" + response[count].returnFlight.travelDate + "<\/span><\/h5>\r\n                <\/div>\r\n            <\/div>";
+
+                            $('.ticket-list-div').append(data);
+                        }
+                        
+                    }
+                    else {
+                        $('.success-err-msg-cancel').show().delay(5000).fadeOut();
+                        $('.success-err-msg-cancel').text('Due to some technical issues, Ticket details cannot be fetched.');
+                        $('.success-err-msg-cancel').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                        document.body.scrollTop = document.documentElement.scrollTop = 0;
+                        return;
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $('.success-err-msg-cancel').show().delay(5000).fadeOut();
+                    $('.success-err-msg-cancel').text('Due to some technical issues, Tickets details cannot be fetched.');
+                    $('.success-err-msg-cancel').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    return;
+                }
+            });
+        }
 </script>
 
 <div class="row menu-box">
     <div class="navigation">
-        <div class="menu active" id="updateInfo" onclick="changeTheView('updateInfo')"><span class="glyphicon glyphicon-pencil">&nbsp;</span><span class="title" >Update Info</span></div>
-        <div class="menu" id="searchFlight"  onclick="changeTheView('searchFlight')"><span class="glyphicon glyphicon-search">&nbsp;</span><span class="title">Search Flight</span></div>
-        <div class="menu" id="viewTicket" onclick="changeTheView('viewTicket')"><span class="glyphicon glyphicon-cog">&nbsp;</span><span class="title" >Manage Booking</span></div>
+        <div class="menu active" id="updateInfo" onclick="changeTheView('updateInfo')"><span class="glyphicon glyphicon-pencil">&nbsp;</span><span class="title">Update Info</span></div>
+        <div class="menu" id="searchFlight" onclick="changeTheView('searchFlight')"><span class="glyphicon glyphicon-search">&nbsp;</span><span class="title">Search Flight</span></div>
+        <div class="menu" id="viewTicket" onclick="changeTheView('viewTicket')"><span class="glyphicon glyphicon-cog">&nbsp;</span><span class="title">Manage Booking</span></div>
     </div>
 </div>
 
@@ -123,12 +226,14 @@
                             <div class="col-xs-6">
                                 <div class="app-label">Departure</div>
                                 <div class="value">
-                                    <input type="date" style="width: 140px; margin-left: -20px;" name="departdate" /></div>
+                                    <input type="date" style="width: 140px; margin-left: -20px;" name="departdate" />
+                                </div>
                             </div>
                             <div class="col-xs-6">
                                 <div class="app-label">Return</div>
                                 <div class="value">
-                                    <input type="date" style="width: 140px; margin-left: -10px;" name="returndate" /></div>
+                                    <input type="date" style="width: 140px; margin-left: -10px;" name="returndate" />
+                                </div>
                             </div>
                         </div>
                         <div class="col-xs-12 login-row">
@@ -145,55 +250,70 @@
         </div>
     </div>
     <div class="row view-ticket-div action-div">
-        <div class="alert alert-info success-err-msg-delete"></div>
-        <div class="flight-list-div">
-            
+        <div class="alert alert-info success-err-msg-cancel"></div>
+        <div class="ticket-list-div">
+            @*<div class="view-ticket-list-div">
+                <span title="Delete Flight" class="delete-icon glyphicon glyphicon-remove" onclick="deleteFlight(5)"></span><span title="Download Ticket" class="download-icon glyphicon glyphicon-download-alt" onclick="deleteFlight(5)"></span>
+                <div class="ticket-detail">
+                    <h5 class="depart-flight-time"><span>Mumbai (07:00)</span>    --------------------------------------------------------------------------------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+                    <h5 class="return-flight-time"><span>Mumbai (07:00)</span>    --------------------------------------------------------------------------------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+                    <h5><span id="passenger-name">Devanshu Sen</span>&nbsp;&nbsp; PNR: <span id="pnr-detail">xuwser1234</span>&nbsp;&nbsp;Seat: <span id="seat">5</span>&nbsp;&nbsp;Amount: <span id="amount"></span>&nbsp;&nbsp; Departs :<span id="departDate"></span>&nbsp;&nbsp; Arrives : <span id="returnDate"></span></h5>
+                </div>
+            </div>*@
         </div>
     </div>
     <div class="row update-info-div action-div">
         <div class="col-xs-12 login-box register-box">
-    <div class="box-title">Update Info</div>
-    <div class="message alert alert-info success-error-msg-update"></div>
-    <div class="box-detail">
-        <form method="post" id="udpateForm" action="/Home/UpdateUserDetail">
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Username</span></div>
-                <div class="col-xs-8">
-                    <input type="text" class="value" readonly="true" name="username" /></div>
+            <div class="box-title">Update Info</div>
+            <div class="message alert alert-info success-error-msg-update"></div>
+            <div class="box-detail">
+                <form method="post" id="udpateForm" action="/Home/UpdateUserDetail">
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Username</span></div>
+                        <div class="col-xs-8">
+                            <input type="text" class="value" readonly="true" name="username" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Password</span></div>
+                        <div class="col-xs-8">
+                            <input type="password" class="value" name="password" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Confirm Password</span></div>
+                        <div class="col-xs-8">
+                            <input type="password" class="value" name="confirmPassword" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Name</span></div>
+                        <div class="col-xs-8">
+                            <input type="text" class="value" name="personName" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Contact No.</span></div>
+                        <div class="col-xs-8">
+                            <input type="text" class="value" name="contactNumber" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-4"><span class="app-label">Address</span></div>
+                        <div class="col-xs-8">
+                            <textarea name="address" class="value" maxlength="150"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 login-row">
+                        <div class="col-xs-6">
+                            <input type="reset" value="Reset" class="btn btn-sm btn-primary" />
+                        </div>
+                        <div class="col-xs-6">
+                            <input type="submit" class="btn btn-sm btn-primary pull-right" />
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Password</span></div>
-                <div class="col-xs-8">
-                    <input type="password" class="value" name="password" /></div>
-            </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Confirm Password</span></div>
-                <div class="col-xs-8">
-                    <input type="password" class="value" name="confirmPassword" /></div>
-            </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Name</span></div>
-                <div class="col-xs-8">
-                    <input type="text" class="value" name="personName" /></div>
-            </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Contact No.</span></div>
-                <div class="col-xs-8">
-                    <input type="text" class="value" name="contactNumber" /></div>
-            </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-4"><span class="app-label">Address</span></div>
-                <div class="col-xs-8">
-                    <textarea name="address" class="value"  maxlength="150"></textarea></div>
-            </div>
-            <div class="col-xs-12 login-row">
-                <div class="col-xs-6">
-                    <input type="reset" value="Reset" class="btn btn-sm btn-primary" /></div>
-                <div class="col-xs-6">
-                    <input type="submit" class="btn btn-sm btn-primary pull-right" /></div>
-            </div>
-        </form>
-    </div>
-</div>
+        </div>
     </div>
 </div>

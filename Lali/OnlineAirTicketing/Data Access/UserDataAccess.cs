@@ -339,7 +339,110 @@ namespace DataAccessLayer
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        pu
+        public List<BookingData> GetBookingDetailsForUser(int userID)
+        {
+            List<BookingData> bookingDetails = new List<BookingData>();
+            // Provide the query string with a parameter placeholder.
+            string queryString =
+                "SELECT lg.flightID, lg.flightLegID, lg.seatID, lg.traveldate, bok.ticketpnr,"+
+                " bok.amount, pas.age, per.name, per.contactno from dbo.T_User as usr, dbo.T_Person as per, dbo.T_Passenger as pas, dbo.T_LegInstance as lg, T_BookingDetail as bok "
+                    + "WHERE lg.activeInd = 'true' and bok.legInstanceID = lg.legInstanceID and bok.UserID = @userID and bok.passengerID = pas.passengerID and pas.personID = per.personID ";
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.AddWithValue("@userID", userID);
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    
+                    while (reader.Read())
+                    {
+                        
+                        BookingData bookingData = new BookingData();
+                        bookingData.flightID = Convert.ToInt32(reader[0]);
+                        int prevFlightID = bookingData.flightID;
+                        bookingData.travelDate = Convert.ToString(reader[3]);
+                        bookingData.pnrno = Convert.ToString(reader[4]);
+                        bookingData.amount = Convert.ToDouble(reader[5]);
+                        bookingData.age = Convert.ToString(reader[6]);
+                        bookingData.passengerName = Convert.ToString(reader[7]);
+                        bookingData.contactnumber = Convert.ToString(reader[8]);
+                        bookingData.flightLegID = new List<int>();
+                        bookingData.seatno = new List<int>();
+                        bookingData.flightLegID.Add(Convert.ToInt32(reader[1]));
+                        bookingData.seatno.Add(Convert.ToInt32(reader[2]));
+                        while (reader.Read())
+                        {
+                            if (prevFlightID != Convert.ToInt32(reader[0]))
+                                break;
+                            bookingData.flightLegID.Add(Convert.ToInt32(reader[1]));
+                            bookingData.seatno.Add(Convert.ToInt32(reader[2]));
+                        }
+                        bookingDetails.Add(bookingData);
+
+                    }
+                    reader.Close();
+                    
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            }
+            return bookingDetails;
+        }
+
+        public bool cancelTicket(string pnrno)
+        {
+            bool result = false;
+
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+
+                    // Provide the query string with a parameter placeholder.
+                    string queryString =
+                        "update T_LegInstance set activeInd = 'false' From T_LegInstance as L, T_BookingDetail as B  where  B.legInstanceID = L.legInstanceID and  B.TicketPNR = @pnrno";
+
+                    // Create the Command and Parameter objects.
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@pnrno", pnrno);
+                    
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return result;
+            }
+        }
     }
 }
 

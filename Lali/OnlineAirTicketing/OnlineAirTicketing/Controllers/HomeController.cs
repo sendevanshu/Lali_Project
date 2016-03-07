@@ -213,5 +213,66 @@ namespace OnlineAirTicketing.Controllers
             bool result = userDataAccess.makeBooking(departureFlight, returnFlight, userID, out pnrno);
             return Json(new { res = result, pnr = pnrno }, JsonRequestBehavior.AllowGet);
         }
+
+
+        public JsonResult GetBookingsForUser()
+        {
+            int userID = Convert.ToInt32(System.Web.HttpContext.Current.Session["userID"]);
+            List<BookingData> bookingDetails = userDataAccess.GetBookingDetailsForUser(userID);
+            List<FlightDetail> flights = adminDataAccess.GetFlights();
+            int count = 0;
+            List<UserFlights> userFlights = new List<UserFlights>();
+            string previouspnr = string.Empty;
+            UserFlights userFlight = null;
+            foreach (BookingData bookingData in bookingDetails)
+            {
+                
+                FlightDetail tempFlightDetail = null;
+                foreach (FlightDetail flightDetail in flights)
+                {
+                    if (Convert.ToInt32(flightDetail.flightID) == bookingData.flightID)
+                    {
+                        tempFlightDetail = flightDetail;
+                        break;
+                    }
+                }
+                List<FlightLegDetail> flightLegList = adminDataAccess.GetFlightLegs(Convert.ToInt32(tempFlightDetail.flightID));
+                if (flightLegList != null && flightLegList.Count == tempFlightDetail.noOfLegs)
+                    {
+                        bookingData.departTime = flightLegList[0].departTime;
+                        bookingData.arrivalTime = flightLegList[tempFlightDetail.noOfLegs - 1].arrivalTime;
+                    }
+                bookingData.from = tempFlightDetail.origin;
+                bookingData.to = tempFlightDetail.destination;
+                
+                if (count % 2 == 0)
+                {
+                    userFlight = new UserFlights();
+                    userFlight.departureFlight = bookingData;
+                }
+                else
+                {
+                    if (userFlight != null)
+                    {
+                        userFlight.returnFlight = bookingData;
+                        userFlights.Add(userFlight);
+                    }
+                }
+                count++;
+            }
+            return Json(userFlights, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult CancelBooking(string pnrno)
+        {
+            bool result = userDataAccess.cancelTicket(pnrno);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult LogOut()
+        {
+            System.Web.HttpContext.Current.Session.RemoveAll();
+            return View("Index");
+        }
     }
 }
