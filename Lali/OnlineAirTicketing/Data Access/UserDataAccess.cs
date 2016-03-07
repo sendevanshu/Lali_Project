@@ -45,7 +45,7 @@ namespace DataAccessLayer
                     SqlDataReader reader = command.ExecuteReader();
                     if (reader.Read())
                     {
-                        userID = Convert.ToInt32(reader[0]); 
+                        userID = Convert.ToInt32(reader[0]);
                     }
                     reader.Close();
                 }
@@ -53,7 +53,7 @@ namespace DataAccessLayer
                 {
                     Console.WriteLine(ex.Message);
                 }
-                
+
             }
             return userID;
         }
@@ -94,7 +94,7 @@ namespace DataAccessLayer
                 cmd.Connection = con;
                 cmd.ExecuteNonQuery();
                 userID = Convert.ToInt32(cmd.Parameters["@UserID"].Value);
-                
+
             }
             catch (Exception ex)
             {
@@ -140,6 +140,7 @@ namespace DataAccessLayer
                         userDetail.username = Convert.ToString(reader[0]);
                         userDetail.password = Convert.ToString(reader[1]);
                         userDetail.personID = Convert.ToInt32(reader[2]);
+                        userDetail.confirmPassword = userDetail.password;
                     }
                     reader.Close();
                     queryString = "SELECT name, contactNo, address, gender from dbo.T_Person "
@@ -165,6 +166,180 @@ namespace DataAccessLayer
             }
             return userDetail;
         }
+
+        public bool updateUserDetail(UserDetail userDetail)
+        {
+            bool result = false;
+
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+
+                    // Provide the query string with a parameter placeholder.
+                    string queryString =
+                        "update T_User set username = @username, password= @password where userID = @userID";
+
+                    // Create the Command and Parameter objects.
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@username", userDetail.username);
+                    command.Parameters.AddWithValue("@password", userDetail.password);
+                    command.Parameters.AddWithValue("@userID", userDetail.userID);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    queryString = "update T_Person set Name = @name, ContactNo = @contactno, address= @address From T_Person as P, T_User as U  where p.PersonID = u.PersonID and u.userID = @userID";
+
+                    command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@name", userDetail.personName);
+                    command.Parameters.AddWithValue("@contactno", userDetail.contactNumber);
+                    command.Parameters.AddWithValue("@address", userDetail.address);
+                    command.Parameters.AddWithValue("@userID", userDetail.userID);
+                    command.ExecuteNonQuery();
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return result;
+            }
+        }
+
+        public bool makeBooking(BookingData departureFlight, BookingData returnFlight, int userID, out string pnrno)
+        {
+            bool result = false;
+            //generate booking pnr
+            pnrno = RandomString(10);
+            //enter data for passenger
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                try
+                {
+
+                    // Provide the query string with a parameter placeholder.
+                    string queryString =
+                        "insert into T_Person (Name, ContactNo) OUTPUT INSERTED.PersonID values (@name, @contactno)";
+
+                    // Create the Command and Parameter objects.
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@name", departureFlight.passengerName);
+                    command.Parameters.AddWithValue("@contactno", departureFlight.contactnumber);
+
+                    connection.Open();
+                    int personID = (Int32) command.ExecuteScalar();
+                    queryString =
+                        "insert into T_Passenger (PersonID, Age, lastUpdatedDate, activeInd) OUTPUT INSERTED.PassengerID values (@personID, @age, @lastUpdatedDate, @activeInd)";
+
+                    command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@personID", personID);
+                    command.Parameters.AddWithValue("@age", departureFlight.age);
+                    command.Parameters.AddWithValue("@lastUpdatedDate", DateTime.Now);
+                    command.Parameters.AddWithValue("@activeInd", true);
+                    int passengerID = (Int32)command.ExecuteScalar();
+
+                    foreach (int flightlegID in departureFlight.flightLegID)
+                    {
+                        Random rnd = new Random();
+                        int seatno = rnd.Next(1, 6);
+                        queryString = "insert into T_LegInstance (FlightID, FlightLegID," +
+                            " SeatID, TravelDate, LastUpdatedDate, ActiveInd)"+
+                            " OUTPUT INSERTED.LegInstanceID values (@flightID, @flightlegID, @seatID, @traveldate, @lastupdateddate, @activeInd)";
+
+                        command = new SqlCommand(queryString, connection);
+                        command.Parameters.AddWithValue("@flightID", departureFlight.flightID);
+                        command.Parameters.AddWithValue("@flightlegID", flightlegID);
+                        command.Parameters.AddWithValue("@seatID", seatno);
+                        command.Parameters.AddWithValue("@traveldate", departureFlight.travelDate);
+                        command.Parameters.AddWithValue("@lastupdateddate", DateTime.Now);
+                        command.Parameters.AddWithValue("@activeInd", true);
+                        int legInstanceID = (Int32)command.ExecuteScalar();
+
+                        queryString = "insert into T_BookingDetail (LegInstanceID, TicketPNR," +
+                            " BookingTime, lastUpdatedDate, actInd, UserID, passengerID, amount)" +
+                            "  values (@legInstanceID, @ticketPNR, @bookingTime, @lastUpdatedDate, @actInd, @UserID, @passengerID, @amount)";
+
+                        command = new SqlCommand(queryString, connection);
+                        command.Parameters.AddWithValue("@legInstanceID", legInstanceID);
+                        command.Parameters.AddWithValue("@ticketPNR", pnrno);
+                        command.Parameters.AddWithValue("@bookingTime", DateTime.Now);
+                        command.Parameters.AddWithValue("@lastUpdatedDate", DateTime.Now);
+                        command.Parameters.AddWithValue("@actInd", true);
+                        command.Parameters.AddWithValue("@UserID", userID);
+                        command.Parameters.AddWithValue("@passengerID", passengerID);
+                        command.Parameters.AddWithValue("@amount", (float)Convert.ToDouble(departureFlight.cost));
+                        command.ExecuteNonQuery();
+
+                    }
+
+                    foreach (int flightlegID in returnFlight.flightLegID)
+                    {
+                        Random rnd = new Random();
+                        int seatno = rnd.Next(1, 6);
+                        queryString = "insert into T_LegInstance (FlightID, FlightLegID," +
+                            " SeatID, TravelDate, LastUpdatedDate, ActiveInd)" +
+                            " OUTPUT INSERTED.LegInstanceID values (@flightID, @flightlegID, @seatID, @traveldate, @lastupdateddate, @activeInd)";
+
+                        command = new SqlCommand(queryString, connection);
+                        command.Parameters.AddWithValue("@flightID", returnFlight.flightID);
+                        command.Parameters.AddWithValue("@flightlegID", flightlegID);
+                        command.Parameters.AddWithValue("@seatID", seatno);
+                        command.Parameters.AddWithValue("@traveldate", returnFlight.travelDate);
+                        command.Parameters.AddWithValue("@lastupdateddate", DateTime.Now);
+                        command.Parameters.AddWithValue("@activeInd", true);
+                        int legInstanceID = (Int32)command.ExecuteScalar();
+
+                        queryString = "insert into T_BookingDetail (LegInstanceID, TicketPNR," +
+                            " BookingTime, lastUpdatedDate, actInd, UserID, passengerID, amount)" +
+                            "  values (@legInstanceID, @ticketPNR, @bookingTime, @lastUpdatedDate, @actInd, @UserID, @passengerID, @amount)";
+
+                        command = new SqlCommand(queryString, connection);
+                        command.Parameters.AddWithValue("@legInstanceID", legInstanceID);
+                        command.Parameters.AddWithValue("@ticketPNR", pnrno);
+                        command.Parameters.AddWithValue("@bookingTime", DateTime.Now);
+                        command.Parameters.AddWithValue("@lastUpdatedDate", DateTime.Now);
+                        command.Parameters.AddWithValue("@actInd", true);
+                        command.Parameters.AddWithValue("@UserID", userID);
+                        command.Parameters.AddWithValue("@passengerID", passengerID);
+                        command.Parameters.AddWithValue("@amount", (float)Convert.ToDouble(returnFlight.cost));
+                        command.ExecuteNonQuery();
+
+                    }
+
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return result;
+            }
+            //for each leg enter data in leginstance
+
+            //for each leg instance id insert data in booking id
+           
+        }
+
+        public string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        pu
     }
 }
 

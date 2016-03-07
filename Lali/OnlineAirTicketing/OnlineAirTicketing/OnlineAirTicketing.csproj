@@ -209,6 +209,7 @@
     <Content Include="Views\Admin\AdminDashboard.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
     <Content Include="Views\Home\UserDashboard.cshtml" />
+    <Content Include="Views\Home\SearchFlight.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

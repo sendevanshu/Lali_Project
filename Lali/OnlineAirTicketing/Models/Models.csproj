@@ -41,9 +41,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminDetail.cs" />
+    <Compile Include="BookingData.cs" />
     <Compile Include="FlightDetail.cs" />
     <Compile Include="FlightLegDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TravelDetail.cs" />
     <Compile Include="UserDetail.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

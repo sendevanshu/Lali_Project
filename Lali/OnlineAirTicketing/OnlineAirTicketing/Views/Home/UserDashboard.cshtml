@@ -19,7 +19,19 @@
 
         $('.success-err-msg').hide();
         $('.success-err-msg-delete').hide();
-        changeTheView('updateInfo');
+
+        //check which view to render
+        var viewName = "@TempData["viewName"]";
+        if (viewName == 'searchFlight') {
+            changeTheView('searchFlight');
+        }
+        else if (viewName == 'viewTicket') {
+            changeTheView('viewTicket');
+        }
+        else {
+            changeTheView('updateInfo');
+        }
+        
     });
     
     var logOut = function () {
@@ -38,242 +50,45 @@
                     break;
                 case 'updateInfo': $('.update-info-div').show();
                     $('#updateInfo').addClass('active');
-                    fetchAllFlight('Edit');
+                    fetchUserDetail();
                     break;
             }
         };
 
 
-        var fetchAllFlight = function (actionToTake) {
-            
+        
+        var fetchUserDetail = function () {
+            var userID = "@Convert.ToString(System.Web.HttpContext.Current.Session["userID"])";
+            var dataToSend = {};
+            dataToSend.userID = userID;
+
             $.ajax({
                 type: "GET",
-                url: "/Admin/GetFlights",
-                dataType: "json",
-                success: function (response) {
-                    $('.flight-div').remove();
-                    for (var count = 0; count < response.length; count++) {
-                        var temp;
-                        if (actionToTake == 'Delete') {
-                            temp = "<div class=\"flight-div\">\r\n                <span title=\"Delete Flight\" class=\"delete-icon glyphicon glyphicon-remove\"  onclick=\"deleteFlight(" + response[count].flightID + ")\"><\/span>\r\n      "
-                        + "          <h3><span>Flight No<\/span>&nbsp;<span>" + response[count].flightNumber + "<\/span><\/h6>\r\n          "
-                        + "   <div><div class=\"detail\">   <h6><span class=\"label\">Origin<\/span>&nbsp;<span class=\"value\">" + response[count].origin + "<\/span><\/h6>\r\n               "
-                        + " <h6><span class=\"label\">Destination<\/span>&nbsp;<span class=\"value\">" + response[count].destination + "<\/span><\/h6><\/div>\r\n             "
-                        + "  <div class=\"detail\"> <h6><span class=\"label\">Departure Time<\/span>&nbsp;<span class=\"value\">" + response[count].departTime + "<\/span><\/h6>\r\n  "
-                        + "<h6><span class=\"label\">Arrival Time<\/span>&nbsp;<span class=\"value\">" + response[count].arrivalTime + "<\/span><\/h6><\/div>\r\n            <\/div>";
-                        }
-                        else if (actionToTake == 'Edit')
-                        {
-                            temp = "<div class=\"flight-div\" id=\"flightEdit-" + response[count].flightID + "\">\r\n                <span title=\"Modify Flight details\" class=\"delete-icon glyphicon glyphicon-pencil\"  onclick=\"modifyFlight(" + response[count].flightID + ")\"><\/span>\r\n      "
-                        + "          <h3><span>Flight No<\/span>&nbsp;<span>" + response[count].flightNumber + "<\/span><\/h6>\r\n          "
-                        + "   <div><div class=\"detail\">   <h6><span class=\"label\">Origin<\/span>&nbsp;<span class=\"value\">" + response[count].origin + "<\/span><\/h6>\r\n               "
-                        + " <h6><span class=\"label\">Destination<\/span>&nbsp;<span class=\"value\">" + response[count].destination + "<\/span><\/h6><\/div>\r\n             "
-                        + "  <div class=\"detail\"> <h6><span class=\"label\">Departure Time<\/span>&nbsp;<input class=\"value\" type=\"text\" id=\"editDepartTime\" value=\"" + response[count].departTime + "\" readonly \/><\/h6>\r\n  "
-                        + "<h6><span class=\"label\">Arrival Time<\/span>&nbsp;<input class=\"value\" type=\"text\" id=\"editArrivalTime\" value=\"" + response[count].arrivalTime + "\" readonly \/><\/h6><\/div>\r\n            <\/div>";
-                        }
-                        
-
-                        $('.flight-list-div').append(temp);
-                    }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-
-                    console.log(xhr.responseText);
-                }
-            });
-        }
-
-        var modifyFlight = function (flightID) {
-            
-            var selectedFlightDiv = $('#flightEdit-' + flightID);
-            if (selectedFlightDiv && selectedFlightDiv.length > 0) {
-                if(selectedFlightDiv.find('.glyphicon').hasClass('glyphicon-pencil'))
-                {
-                    selectedFlightDiv.find('.glyphicon').removeClass('glyphicon-pencil');
-                    selectedFlightDiv.find('.glyphicon').addClass('glyphicon-floppy-disk');
-                    selectedFlightDiv.find('.glyphicon').attr('title','Save Flight Details');
-                    selectedFlightDiv.find('#editDepartTime').prop("readonly", false);
-                    selectedFlightDiv.find('#editArrivalTime').prop("readonly", false);
-                }
-                else if (selectedFlightDiv.find('.glyphicon').hasClass('glyphicon-floppy-disk')) {
-                    selectedFlightDiv.find('.glyphicon').addClass('glyphicon-pencil');
-                    selectedFlightDiv.find('.glyphicon').removeClass('glyphicon-floppy-disk');
-                    selectedFlightDiv.find('.glyphicon').attr('title','Modify Flight Details');
-                    selectedFlightDiv.find('#editDepartTime').prop("readonly", true);
-                    selectedFlightDiv.find('#editArrivalTime').prop("readonly", true);
-                    var data = {};
-                    data.flightId = flightID;
-                    data.arrivalTime = selectedFlightDiv.find('#editArrivalTime').val();
-                    data.departTime = selectedFlightDiv.find("#editDepartTime").val();
-                    $.ajax({
-                        type: "POST",
-                        url: "/Admin/ModifyFlight",
-                        data: JSON.stringify(data),
-                        dataType: "json",
-                        contentType: "application/json",
-                        success: function (response) {
-                            if (response.returnCode == 1) {
-
-                                $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                                $('.success-err-msg-delete').text('Flight Details modified Successfully');
-                                $('.success-err-msg-delete').css('background-color', '#667C26'); //red #7E3817 //green #667C26
-                                fetchAllFlight('Edit');
-                            }
-                            else {
-                                $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                                $('.success-err-msg-delete').text('Due to some technical issues, flight details cannot be modified.');
-                                $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                                fetchAllFlight('Edit');
-                                console.log(response);
-                            }
-
-                        },
-                        error: function (xhr, ajaxOptions, thrownError) {
-                            $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                            $('.success-err-msg-delete').text('Due to some technical issues, flight details cannot be modified.');
-                            $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                            console.log(xhr.responseText);
-                        }
-                    });
-
-                }
-            }
-        }
-        var deleteFlight = function(flightID)
-        {
-            var data = {};
-            data.flightID = flightID;
-            $.ajax({
-                type: "POST",
-                url: "/Admin/DeleteFlight",
-                data: JSON.stringify(data),
+                url: "/Home/GetUserInfo?userID="+userID,
                 dataType: "json",
                 contentType: "application/json",
                 success: function (response) {
-                    if (response.returnCode == 1) {
-
-                        $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                        $('.success-err-msg-delete').text('Flight Deleted Successfully');
-                        $('.success-err-msg-delete').css('background-color', '#667C26'); //red #7E3817 //green #667C26
-                        fetchAllFlight('Delete');
+                    if (response) {
+                        var updateForm = $('#udpateForm');
+                        updateForm.find('[name=username]').val(response.username);
+                        updateForm.find('[name=password]').val(response.password);
+                        updateForm.find('[name=confirmPassword]').val(response.confirmPassword);
+                        updateForm.find('[name=personName]').val(response.personName);
+                        updateForm.find('[name=contactNumber]').val(response.contactNumber);
+                        updateForm.find('[name=address]').val(response.address);
                     }
                     else {
-                        $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                        $('.success-err-msg-delete').text('Due to some technical issues, flight cannot be deleted now.');
-                        $('.success-err-msg-delete').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                        console.log(response);
+                        $('.success-error-msg-update').show().delay(5000).fadeOut();
+                        $('.success-error-msg-update').text('Due to some technical issues, User details cannot be fetched.');
+                        $('.success-error-msg-update').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
                     }
-                    
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    $('.success-err-msg-delete').show().delay(5000).fadeOut();
-                    $('.success-err-msg-delete').text('Due to some technical issues, flight cannot be deleted now.');
+
                     console.log(xhr.responseText);
                 }
             });
         }
-
-        var addFlightLeg = function () {
-            var flightlegNo = $('.flightleg-no');
-            var id;
-            if (flightlegNo && flightlegNo.length > 0) {
-                var flightLegId = $('.flightleg-no').last().attr('id');
-                id = flightLegId.split('-')[1];
-                id = parseInt(id) + 1;
-            }
-            else {
-                id = 1;
-            }
-            var flightLegTemplate = " <div class=\"flight-leg-div\">\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <label id=\"flightleg-" + id + "\" class=\"flightleg-no\">Flight Leg " + id + "<\/label>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>FlightLeg Number<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"flightlegNum\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Duration<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"duration\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departure Time<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"departtime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Time<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" placeholder=\"HH:MM:SS\" id=\"arrivaltime\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Base Fare (Rs)<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"basefare\" \/><\/div>\r\n                    <\/div>\r\n                <\/div>\r\n                <div class=\"row\">\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Departing Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"departingairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Arrival Airport<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"arrivalairport\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Origin<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legorigin\" \/><\/div>\r\n                    <\/div>\r\n                    <div class=\"col-xs-2\">\r\n                        <div class=\"row\"><span>Destination<\/span><\/div>\r\n                        <div class=\"row\"><input type=\"text\" id=\"legdestination\" \/><\/div>\r\n                <\/div>\r\n        <div class=\"col-xs-2 button-remove\">\r\n                        <button onclick=\"removeFlightLeg("+ id +")\" class=\"btn btn-xs btn-primary\"><span class=\"glyphicon glyphicon-minus-sign\"><\/span>&nbsp;&nbsp;<span>Remove<\/span><\/button>\r\n                    <\/div>                   \r\n                <\/div>\r\n              <hr class=\"leg-template-end\" \/>\r\n            <\/div>";
-            $('.flight-leg-placeholder').append(flightLegTemplate);
-            
-        }
-
-
-        var addFlight = function () {
-            var flightDetail = {};
-            flightDetail.flightNumber = $('#flightNum').val();
-            flightDetail.origin = $('#origin').val();
-            flightDetail.destination = $('#destination').val();
-            flightDetail.distance = parseFloat($('#distance').val());
-            flightDetail.noOfLegs = parseInt($('#legnum').val());
-            flightDetail.flightLegs = [];
-            if (flightDetail.noOfLegs > 0) {
-                var flightlegNo = $('.flightleg-no');
-                if (flightlegNo && flightlegNo.length > 0 && flightlegNo.length == flightDetail.noOfLegs && flightDetail.noOfLegs >= 1) {
-                    for (var count = 1; count <= flightDetail.noOfLegs; count++) {
-                        var flightlegDiv = $("#flightleg-" + count).closest('.flight-leg-div');
-                        var flightLeg = {};
-                        flightLeg.flightlegNo = $(flightlegDiv).find("#flightlegNum").val();
-                        flightLeg.duration = $(flightlegDiv).find("#duration").val();
-                        flightLeg.departTime = $(flightlegDiv).find("#departtime").val();
-                        flightLeg.arrivalTime = $(flightlegDiv).find("#arrivaltime").val();
-                        flightLeg.baseFare = parseFloat($(flightlegDiv).find("#basefare").val());
-                        flightLeg.departingAirport = $(flightlegDiv).find("#departingairport").val();
-                        flightLeg.arrivalAirport = $(flightlegDiv).find("#arrivalairport").val();
-                        flightLeg.legOrigin = $(flightlegDiv).find("#legorigin").val();
-                        flightLeg.legDestination = $(flightlegDiv).find("#legdestination").val();
-                        flightDetail.flightLegs.push(flightLeg);
-                    }
-                }
-                else {
-                    $('.success-err-msg').show().delay(5000).fadeOut();
-                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                    $('.success-err-msg').text('Please provide details for all the flight legs. Flight should have atleast one flight leg');
-                    document.body.scrollTop = document.documentElement.scrollTop = 0;
-                    return;
-                }
-            }
-            console.log(flightDetail);
-            $.ajax({
-                type: "POST",
-                url: "/Admin/AddFlight",
-                data: JSON.stringify(flightDetail),
-                dataType: "json",
-                contentType: "application/json",
-                success: function (response) {
-                    $('.success-err-msg').show().delay(5000).fadeOut();
-                    $('.success-err-msg').text('Flight Details added. Flight ID :' + response.flightID);
-                    $('.success-err-msg').css('background-color', '#667C26'); //red #7E3817 //green #667C26
-                    document.body.scrollTop = document.documentElement.scrollTop = 0;
-                    console.log(response);
-                    var elements = document.getElementsByTagName("input");
-                    //clearing all elements.
-                    for (var ii = 0; ii < elements.length; ii++) {
-                        if (elements[ii].type == "text") {
-                            elements[ii].value = "";
-                        }
-                    }
-                    $('.flight-leg-div').remove();
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    $('.success-err-msg').show().delay(5000).fadeOut();
-                    $('.success-err-msg').text('Error while submitting data. Please check data and submit again');
-                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                    document.body.scrollTop = document.documentElement.scrollTop = 0;
-                    console.log(xhr.responseText);
-                }
-            });
-        }
-
-        var removeFlightLeg = function (removeLegID) {
-            var flightlegNo = $('.flightleg-no');
-            var id;
-            if (flightlegNo && flightlegNo.length > 0) {
-                var flightLegId = $('.flightleg-no').last().attr('id');
-                id = flightLegId.split('-')[1];
-                if (id == removeLegID) {
-                    $("#" + flightLegId).closest('.flight-leg-div').remove();
-                }
-                else {
-                    $('.success-err-msg').show().delay(5000).fadeOut();
-                    $('.success-err-msg').text('Remove the last Flight Leg first.');
-                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
-                    document.body.scrollTop = document.documentElement.scrollTop = 0;
-                }
-            }
-        }
-
 </script>
 
 <div class="row menu-box">
@@ -338,9 +153,9 @@
     <div class="row update-info-div action-div">
         <div class="col-xs-12 login-box register-box">
     <div class="box-title">Update Info</div>
-    <div class="message alert alert-info"></div>
+    <div class="message alert alert-info success-error-msg-update"></div>
     <div class="box-detail">
-        <form method="post" action="/Home/UpdateInfo">
+        <form method="post" id="udpateForm" action="/Home/UpdateUserDetail">
             <div class="col-xs-12 login-row">
                 <div class="col-xs-4"><span class="app-label">Username</span></div>
                 <div class="col-xs-8">

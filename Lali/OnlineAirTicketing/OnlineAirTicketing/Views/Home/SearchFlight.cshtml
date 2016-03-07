@@ -1,0 +1,351 @@
+﻿@{
+    ViewBag.Title = "SearchFlight";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form name="goToHomeForm" action="/Home/GoToHome">
+    <div class="admin logintitle">
+        <h5 class="title">Welcome  @Convert.ToString(System.Web.HttpContext.Current.Session["name"])</h5>
+        <span title="Go Home" class="user-sym glyphicon glyphicon-home" onclick="goToHome()"></span></div>
+</form>
+<script>
+    var goToHome = function () {
+        var userId = "@Convert.ToString(System.Web.HttpContext.Current.Session["name"])";
+        if (userId) {
+            document.goToHomeForm.submit();
+        }
+        else {
+            window.history.back();
+        }
+    }
+
+    $(document).ready(function () {
+        $('.view-ticket').hide();
+        $('.searched-flight-detail').show();
+        $('.calculation-detail').show();
+        $('.success-msg').hide();
+        $('.success-err-msg').hide();
+        getFlightDetails();
+        var userId = "@Convert.ToString(System.Web.HttpContext.Current.Session["name"])";
+        if (userId == "") {
+            $('.calculation-detail').hide();
+        }
+        else {
+            $('.calculation-detail').show();
+        }
+    });
+
+    var generateTicket = function () {
+        var departDate = "@Convert.ToString(System.Web.HttpContext.Current.Session["departDate"])";
+        var returnDate = "@Convert.ToString(System.Web.HttpContext.Current.Session["returnDate"])";
+        var departingFlight = $('.depart-flight-time')[0].innerHTML;
+        var returnFlight = $('.return-flight-time')[0].innerHTML;
+        var passengerName = $('#passenger-name').text();
+        var pnrdetail = $('#pnr-detail').text();
+        var csspath = "@Url.Content("~\\Content\\Site.css")";
+        var preData = "<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <meta charset=\"utf-8\" \/>\r\n    <title>Print Page<\/title>\r\n    \r\n    <link href=\"..\/..\/Content\/css\/bootstrap.css\" rel=\"stylesheet\"  type=\"text/css\" media=\"screen,print\" \/>\r\n    <link href=\"" + csspath + "\" rel=\"stylesheet\" type=\"text\/css\" media=\"screen,print\" \/><\/head><body>";
+        var data = "<div class=\"view-ticket\">\r\n    <div class=\"ticket-detail\">\r\n   " +
+            "<h5>" + departingFlight + "<\/h5>\r\n      " +
+            "<h5><span>" + passengerName + "<\/span>&nbsp;&nbsp;&nbsp;&nbsp;<span>" + departDate + "<\/span>" +
+            "<span style=\"float:right;\" >" + pnrdetail + "<\/span>&nbsp; <\/h5>\r\n    <\/div>\r\n        <\/div>\r\n      " +
+            "<div class=\"view-ticket\">\r\n    <div class=\"ticket-detail\">\r\n        <h5>" + returnFlight + "<\/h5>\r\n       " +
+            "<h5><span>" + passengerName + "<\/span>&nbsp;&nbsp;&nbsp;&nbsp;<span>" + returnDate + "<\/span> " +
+            "<span style=\"float:right;\">" + pnrdetail + "<\/span>&nbsp; <\/h5>\r\n    <\/div>\r\n            <\/div><div class=\"view-ticket\">\r\n<input type=\"button\" class=\"btn btn-small btn-primary\" value=\"Print\" onclick=\"window.print()\"\/>\r\n<\/div>";
+        var postData = "<\/body><\/html>";
+        var win = window.open('', 'Print Page', 'height=400,width=600');
+        win.document.write(preData + data + postData);
+ 
+    }
+    var bookTicket = function () {
+        var departFlight = $('.depart-flight').find('input:radio:checked');
+        var passengername = $('#passname').val();
+        var contactnumber = $('#contactno').val();
+        var cost = $('.calculation-detail').find('#cost').text();
+        var age = $('#age').val();
+        var departFlightToDisplay = "";
+        var departure = {};
+        departure.flightID = "";
+        departure.flightLegID = [];
+        departure.passengerName = passengername;
+        departure.contactnumber = contactnumber;
+        departure.age = age;
+        departure.cost = cost;
+        if (departFlight) {
+            departure.flightID = departFlight.val();
+            var departFlightLegs = departFlight.parent().parent().find('.flightlegId');
+            departFlightToDisplay = departFlight.parent().parent().find('.flight')[0].innerHTML;
+            if (departFlightLegs) {
+                for (var count = 0; count < departFlightLegs.length; count++) {
+                    departure.flightLegID.push(departFlightLegs[count].value);
+                }
+            }
+            
+        }
+        var returnFlightDiv = $('.return-flight').find('input:radio:checked');
+        var returnFlightToDisplay = "";
+        var returnFlight = {};
+        returnFlight.flightID = "";
+        returnFlight.flightLegID = [];
+        returnFlight.passengerName = passengername;
+        returnFlight.contactnumber = contactnumber;
+        returnFlight.age = age;
+        returnFlight.cost = cost;
+        if (returnFlightDiv) {
+            returnFlight.flightID = returnFlightDiv.val();
+            var returnFlightLegs = returnFlightDiv.parent().parent().find('.flightlegId');
+            returnFlightToDisplay = returnFlightDiv.parent().parent().find('.flight')[0].innerHTML;
+            if (returnFlightLegs) {
+                for (var count = 0; count < returnFlightLegs.length; count++) {
+                    returnFlight.flightLegID.push(returnFlightLegs[count].value);
+                }
+            }
+        }
+        
+        var data = {};
+        data.departureFlight = departure;
+        data.returnFlight = returnFlight;
+
+        $.ajax({
+            type: "POST",
+            url: "/Home/MakeBooking",
+            data: JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                if (response && response.res) {
+                    $('.view-ticket').show();
+                    $('.searched-flight-detail').hide();
+                    $('.calculation-detail').hide();
+                    $('.ticket-detail').find('.depart-flight-time')[0].innerHTML = departFlightToDisplay;
+                    $('.ticket-detail').find('.return-flight-time')[0].innerHTML = returnFlightToDisplay;
+                    $('#passenger-name').val(departure.passengerName);
+                    $('#pnr-detail').val("PNR No: " + response.pnr);
+                    $('.success-msg').show().delay(5000).fadeOut();
+                    $('.success-msg').text('Reservation Done. Successfully. Please find details');
+                    $('.success-msg').css('background-color', '#667C26'); //red #7E3817 //green #667C26
+                }
+                else {
+                    $('.success-err-msg').show().delay(5000).fadeOut();
+                    $('.success-err-msg').text('Error while submitting data. Please check data and submit again');
+                    $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                }
+                
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('.success-err-msg').show().delay(5000).fadeOut();
+                $('.success-err-msg').text('Error while submitting data. Please check data and submit again');
+                $('.success-err-msg').css('background-color', '#7E3817'); //red #7E3817 //green #667C26
+                
+                console.log(xhr.responseText);
+            }
+        });
+        
+    }
+
+    var calculate = function (id) {
+        var departDiv = $('#departFlight-' + id);
+        var returnDiv = $('#returnFlight-' + id);
+        var calcDiv = $('.calculation-detail');
+        var selectedDepartFlight="";
+        var departFlightCost = 0;
+        var selectedReturnFlight = "";
+        var returnFlightCost = 0;
+        if (departDiv && departDiv.length > 0) {
+            selectedDepartFlight = departDiv.find('.flight')[0].innerHTML;
+                
+            
+        }
+        if (returnDiv && returnDiv.length > 0) {
+            selectedReturnFlight = returnDiv.find('.flight')[0].innerHTML;
+        }
+
+        var departFlight = $('.depart-flight').find('input:radio:checked');
+        if (departFlight) {
+            departFlightCost = departFlight.parent().parent().find('[name=basefare]').val();
+        }
+        var returnFlight = $('.return-flight').find('input:radio:checked');
+        if (returnFlight) {
+            returnFlightCost = returnFlight.parent().parent().find('[name=basefare]').val();
+        }
+        var total = parseFloat(departFlightCost) + parseFloat(returnFlightCost);
+        calcDiv.find('#cost').text(total);
+        if(selectedDepartFlight)
+            calcDiv.find('.depart-flight-selected')[0].innerHTML = selectedDepartFlight;
+        if(selectedReturnFlight)
+            calcDiv.find('.return-flight-selected')[0].innerHTML = selectedReturnFlight;
+
+    }
+
+    var getFlightDetails = function () {
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetFlightsForDepart",
+            dataType: "json",
+            success: function (response) {
+                $('.depart-flight').empty();
+                for (var count = 0; count < response.length; count++) {
+                    var departFlight = "<div class=\"flights-div\" id=\"departFlight-" + response[count].flightID + "\" ><div class=\"col-xs-2\">\r\n      "
+                        + "<input type=\"radio\" value=\"" + response[count].flightID + "\" name=\"flights\" onchange=\"calculate(" + response[count].flightID
+                        +")\" \/><\/div>\r\n   "
+                        + "<div class=\"col-xs-10\">\r\n      "
+                        + "<h5 class=\"flight\"><span>" + response[count].origin + " (" + response[count].departTime + ")<\/span>"
+                    + "-------------<span class=\"glyphicon glyphicon-plane\" "
+                    + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                    + "<span> " + response[count].destination + " (" + response[count].arrivalTime + ")<\/span><\/h5>\r\n          ";
+
+                    var departFlightLeg = "";
+                    for (var leg = 0; leg < response[count].flightLegs.length; leg++) {
+                        departFlightLeg += "<h6 class=\"flight-leg\"><span>" + response[count].flightLegs[leg].legOrigin + " (" + response[count].flightLegs[leg].departTime + ")<\/span>"
+                    + "--------<span class=\"glyphicon glyphicon-plane\" "
+                    + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                    + "<span> " + response[count].flightLegs[leg].legDestination + " (" + response[count].flightLegs[leg].arrivalTime + ")<\/span><\/h6>\r\n          <input type=\"hidden\" name=\"basefare\" value=\"" +
+                        response[count].flightLegs[leg].baseFare + "\" \/>  <input type=\"hidden\" class=\"flightlegId\" value=\"" +
+                        response[count].flightLegs[leg].flightLegID + "\" \/>";
+
+                    }
+
+                    var endText = " <\/div><\/div>";
+                    var flightDetail = departFlight + departFlightLeg + endText;
+
+                    $('.depart-flight').append(flightDetail);
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+
+                console.log(xhr.responseText);
+            }
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetFlightsForReturn",
+            dataType: "json",
+            success: function (response) {
+                $('.return-flight').empty();
+                
+                if (response && response.length > 0) {
+                    $('.return-flight').show();
+                    $('.searched-flight-detail').removeClass('no-return');
+                    $('.return-detail').show();
+                    $('.departure-detail').addClass('col-xs-4');
+                    $('.cost-detail').addClass('col-xs-4');
+                    $('.departure-detail').removeClass('col-xs-6');
+                    $('.cost-detail').removeClass('col-xs-6');
+
+                    for (var count = 0; count < response.length; count++) {
+                        var departFlight = "<div class=\"flights-div\" id=\"returnFlight-" + response[count].flightID + "\"><div class=\"col-xs-2\">\r\n      "
+                            + "<input type=\"radio\" value=\"" + response[count].flightID + "\" name=\"return-flights\"  onchange=\"calculate(" + response[count].flightID
+                        + ")\" \/><\/div>\r\n   "
+                            + "<div class=\"col-xs-10\">\r\n      "
+                            + "<h5 class=\"flight\"><span>" + response[count].origin + " (" + response[count].departTime + ")<\/span>"
+                        + "-------------<span class=\"glyphicon glyphicon-plane\" "
+                        + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                        + "<span> " + response[count].destination + " (" + response[count].arrivalTime + ")<\/span><\/h5>\r\n          ";
+
+                        var departFlightLeg = "";
+                        for (var leg = 0; leg < response[count].flightLegs.length; leg++) {
+                            departFlightLeg += "<h6 class=\"flight-leg\"><span>" + response[count].flightLegs[leg].legOrigin + " (" + response[count].flightLegs[leg].departTime + ")<\/span>"
+                        + "--------<span class=\"glyphicon glyphicon-plane\" "
+                        + "style=\"display: inline-block; -webkit-transform: rotate(90deg)\"><\/span>"
+                        + "<span> " + response[count].flightLegs[leg].legDestination + " (" + response[count].flightLegs[leg].arrivalTime + ")<\/span><\/h6>\r\n   <input type=\"hidden\" name=\"basefare\" value=\"" +
+                        response[count].flightLegs[leg].baseFare + "\"    \/>   <input type=\"hidden\" class=\"flightlegId\" value=\"" +
+                        response[count].flightLegs[leg].flightLegID + "\" \/> ";
+
+                        }
+
+                        var endText = " <\/div><\/div>";
+                        var flightDetail = departFlight + departFlightLeg + endText;
+
+                        $('.return-flight').append(flightDetail);
+                    }
+                }
+                else {
+                    $('.return-flight').hide();
+                    $('.searched-flight-detail').addClass('no-return');
+                    $('.return-detail').hide();
+                    $('.departure-detail').removeClass('col-xs-4');
+                    $('.cost-detail').removeClass('col-xs-4');
+                    $('.departure-detail').addClass('col-xs-6');
+                    $('.cost-detail').addClass('col-xs-6');
+                }
+                
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+
+                console.log(xhr.responseText);
+            }
+        });
+    }
+</script>
+
+<div class="searched-flight-detail">
+    <div class="depart-flight col-xs-6">
+        @*<div class="flights-div">
+            <div class="col-xs-2">
+            <input type="radio" value="flightID" name="return-flights" /></div>
+        <div class="col-xs-10">
+            <h5 class="flight"><span>Mumbai (07:00)</span> -------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+            <h6 class="flight-leg"><span>Mumbai (07:00)</span> --------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Lucknow (07:00)</span></h6>
+            <h6 class="flight-leg"><span>Lucknow (07:00)</span> --------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h6>
+        </div>
+        </div>*@
+    </div>
+    <div class="return-flight col-xs-6">
+        @*<div class="flights-div">
+            <div class="col-xs-2">
+            <input type="radio" value="flightID" name="return-flights" /></div>
+        <div class="col-xs-10">
+            <h5 class="flight"><span>Mumbai (07:00)</span> -------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+            <h6 class="flight-leg"><span>Mumbai (07:00)</span> --------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Lucknow (07:00)</span></h6>
+            <h6 class="flight-leg"><span>Lucknow (07:00)</span> --------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h6>
+        </div>
+        </div>*@
+    </div>
+</div>
+
+<div class="calculation-detail">
+    <div class="alert alert-info success-err-msg"></div>
+    <div>
+        <div>
+            <div class="col-xs-3">
+               Passenger Name: <input type="text" id="passname" />
+            </div>
+            <div class="col-xs-3">
+               Contact Number: <input type="text" id="contactno" />
+            </div>
+            <div class="col-xs-3">
+               Age: <input type="text" id="age" />
+            </div>
+            <div class="col-xs-3">
+               Debit Card Number: <input type="text" id="debitcardno" />
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <div class="col-xs-4 departure-detail">
+        <h5 class="depart-flight-selected"></h5>
+    </div>
+    <div class="col-xs-4 return-detail">
+        <h5 class="return-flight-selected"></h5>
+    </div>
+    <div class="col-xs-4 cost-detail">
+        <div class="col-xs-6">
+            <h6>Total <span id="cost"></span></h6>
+        </div>
+        <div class="col-xs-6 button">
+            <input type="button" onclick="bookTicket()" value="Book" class="btn btn-sm btn-danger" />
+        </div>
+    </div>
+    </div>
+    
+</div>
+
+<div class="view-ticket">
+    <div class="alert alert-info success-msg"></div>
+    <div class="ticket-detail">
+        <h5 class="depart-flight-time"><span>Mumbai (07:00)</span>    --------------------------------------------------------------------------------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+        <h5 class="return-flight-time"><span>Mumbai (07:00)</span>    --------------------------------------------------------------------------------------<span class="glyphicon glyphicon-plane" style="display: inline-block; -webkit-transform: rotate(90deg)"></span><span> Kanpur (07:00)</span></h5>
+        <h5><span id="passenger-name">Devanshu Sen</span>&nbsp; <span id="pnr-detail">PNR: xuwser1234</span>&nbsp; <input type="button" class="btn btn-small btn-primary" onclick="generateTicket()" value="Generate Ticket" /></h5>
+    </div>
+</div>
