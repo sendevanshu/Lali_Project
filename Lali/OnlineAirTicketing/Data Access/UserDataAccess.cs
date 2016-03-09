@@ -1,4 +1,5 @@
 ﻿using Models;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -33,7 +34,7 @@ namespace DataAccessLayer
             {
                 // Create the Command and Parameter objects.
                 SqlCommand command = new SqlCommand(queryString, connection);
-                command.Parameters.AddWithValue("@password", password);
+                command.Parameters.AddWithValue("@password", RSAAlgo.DecryptText(password));
                 command.Parameters.AddWithValue("@usrname", username);
 
                 // Open the connection in a try/catch block. 
@@ -83,7 +84,7 @@ namespace DataAccessLayer
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandText = "AddUser";
                 cmd.Parameters.Add("@UserName", SqlDbType.VarChar).Value = userDetail.username;
-                cmd.Parameters.Add("@Password", SqlDbType.VarChar).Value = userDetail.password;
+                cmd.Parameters.Add("@Password", SqlDbType.VarChar).Value = RSAAlgo.DecryptText(userDetail.password);
                 cmd.Parameters.Add("@PersonID", SqlDbType.Int).Value = personID;
                 cmd.Parameters.Add("@RegisterDateTime", SqlDbType.DateTime).Value = DateTime.Now;
                 cmd.Parameters.Add("@lastUpdatedDateTime", SqlDbType.DateTime).Value = DateTime.Now;
@@ -434,6 +435,89 @@ namespace DataAccessLayer
                     connection.Open();
                     command.ExecuteNonQuery();
                     
+                    result = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                return result;
+            }
+        }
+
+        public UserDetail GetSecQuestion(string username)
+        {
+            UserDetail userDetail = null;
+            // Provide the query string with a parameter placeholder.
+            string queryString = "select securityQues, securityAns from T_User where username=@username";
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.AddWithValue("@username", username);
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+
+                        userDetail = new UserDetail();
+                        userDetail.securityQues = Convert.ToString(reader[0]);
+                        userDetail.securityAns = Convert.ToString(reader[1]);
+
+                    }
+                    reader.Close();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+            }
+            return userDetail;
+        }
+
+        public bool setPassword(UserDetail tempUser)
+        {
+            bool result = false;
+
+
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(connectionString))
+            {
+
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+
+                    // Provide the query string with a parameter placeholder.
+                    string queryString =
+                        "update T_User set password = @password where  username = @username";
+
+                    // Create the Command and Parameter objects.
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.AddWithValue("@password", RSAAlgo.DecryptText(tempUser.password));
+                    command.Parameters.AddWithValue("@username", tempUser.username);
+                    connection.Open();
+                    command.ExecuteNonQuery();
+
                     result = true;
                 }
                 catch (Exception ex)

@@ -1,4 +1,15 @@
-﻿.row {
+﻿.container-fluid {
+    background-color: #1E90FF;
+    height: 50px;
+    padding-top: 8px;
+    padding-left: 50px;
+        font-size: 25px;
+    color: white;
+    font-weight: 700;
+    font-family: sans-serif;
+}
+
+.row {
     margin: 0 !important;
 }
 

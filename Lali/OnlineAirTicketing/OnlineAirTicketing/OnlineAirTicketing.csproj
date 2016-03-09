@@ -108,6 +108,8 @@
     <Content Include="Content\js\bootstrap.js" />
     <Content Include="Content\js\bootstrap.min.js" />
     <Content Include="Content\js\npm.js" />
+    <Content Include="Content\js\public—js—aes-ctr.js" />
+    <Content Include="Content\js\public—js—aes.js" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -210,6 +212,7 @@
     <Content Include="Views\Home\Register.cshtml" />
     <Content Include="Views\Home\UserDashboard.cshtml" />
     <Content Include="Views\Home\SearchFlight.cshtml" />
+    <Content Include="Views\Home\ForgetPassword.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
@@ -225,6 +228,10 @@
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{6eecdd81-1ea0-478c-b720-36ad0ae56c7d}</Project>
       <Name>Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Security\Security.csproj">
+      <Project>{4a0eb954-984c-4246-875a-c45bcdbc7711}</Project>
+      <Name>Security</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

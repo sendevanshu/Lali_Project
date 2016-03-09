@@ -1,5 +1,6 @@
 ﻿using DataAccessLayer;
 using Models;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,7 +25,7 @@ namespace OnlineAirTicketing.Controllers
         {
             if (userDetail != null)
             {
-                
+                userDetail.password = RSAAlgo.EncryptText(userDetail.password);
                 int resultUserID = userDataAccess.validateUserInfo(userDetail.username, userDetail.password);
                 UserDetail userTempDetail = userDataAccess.getUserInfo(resultUserID);
 
@@ -59,7 +60,7 @@ namespace OnlineAirTicketing.Controllers
         [HttpPost]
         public ActionResult Register(UserDetail userDetail)
         {
-            
+            userDetail.password = RSAAlgo.EncryptText(userDetail.password);
             int userID = userDataAccess.addUser(userDetail);
             userDetail.userID = userID;
             //UserDetail userDetail = userDataAccess.getUserInfo(userID);
@@ -76,6 +77,79 @@ namespace OnlineAirTicketing.Controllers
                 return View(userDetail);
             }
             
+        }
+
+        public ActionResult ForgetPassword()
+        {
+            UserDetail userDetail = new UserDetail();
+            return View(userDetail);
+        }
+
+        public ActionResult RetreiveSecQues(UserDetail tempUser)
+        {
+            if (tempUser != null)
+            {
+                UserDetail userDetail = userDataAccess.GetSecQuestion(tempUser.username);
+                if (userDetail != null)
+                {
+                    Session["username"] = tempUser.username;
+                    TempData["securityans"] = userDetail.securityAns;
+                    return View("ForgetPassword", userDetail);
+                }
+                else
+                {
+                    userDetail = new UserDetail();
+                    userDetail.errorMsg = "Username not found in the system.";
+                    return View("ForgetPassword", userDetail);
+                }
+            }
+            else
+            {
+                tempUser = new UserDetail();
+                tempUser.errorMsg = "Please enter valid username.";
+                return View("ForgetPassword", tempUser);
+            }
+            
+        }
+
+        public ActionResult SetPassword(UserDetail tempUser)
+        {
+            if (tempUser != null)
+            {
+                if (tempUser.securityAns.Equals(Convert.ToString(TempData["securityans"])))
+                {
+                    tempUser.username = Convert.ToString(Session["username"]);
+                    tempUser.password = RSAAlgo.EncryptText(tempUser.password);
+                    bool result = userDataAccess.setPassword(tempUser);
+                    if (result)
+                    {
+                        UserDetail user = new UserDetail();
+                        user.errorMsg = "Password changed successfully.";
+                        return View("ForgetPassword", user);
+                    }
+                    else
+                    {
+                        UserDetail user = new UserDetail();
+                        
+                        user.errorMsg = "Failed to change password.";
+                        return View("ForgetPassword", user);
+                    }
+                }
+                else
+                {
+                    UserDetail user = new UserDetail();
+                    user.errorMsg = "Invalid answer.";
+                    
+                    return View("ForgetPassword", user);
+                }
+            }
+            else
+            {
+                UserDetail user = new UserDetail();
+                user.errorMsg = "Please provide all details.";
+                
+                return View("ForgetPassword", user);
+            }
         }
 
         [HttpGet]

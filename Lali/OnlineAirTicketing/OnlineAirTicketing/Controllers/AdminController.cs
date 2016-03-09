@@ -1,5 +1,6 @@
 ﻿using DataAccessLayer;
 using Models;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -25,14 +26,23 @@ namespace OnlineAirTicketing.Controllers
         public ActionResult ValidateAdmin(AdminDetail adminDetail)
         {
             string viewName = string.Empty;
-            bool isLoginSuccessful = adminDataAccess.validateAdminCred(adminDetail.username, adminDetail.password);
-            if (!isLoginSuccessful)
+            if (adminDetail != null)
             {
-                adminDetail.errorMsg = "Invalid Username/Password";
+                adminDetail.password = RSAAlgo.EncryptText(adminDetail.password);
+                bool isLoginSuccessful = adminDataAccess.validateAdminCred(adminDetail.username, adminDetail.password);
+                if (!isLoginSuccessful)
+                {
+                    adminDetail.errorMsg = "Invalid Username/Password";
+                    return View("AdminPage", adminDetail);
+                }
+                System.Web.HttpContext.Current.Session["username"] = adminDetail.username;
+                return View("AdminDashboard");
+            }
+            else
+            {
+                adminDetail.errorMsg = "Please provide details";
                 return View("AdminPage", adminDetail);
             }
-            System.Web.HttpContext.Current.Session["username"] = adminDetail.username; 
-            return View("AdminDashboard");
         }
 
         public JsonResult AddFlight(FlightDetail flightDetail)

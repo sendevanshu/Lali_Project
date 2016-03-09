@@ -1,4 +1,5 @@
 ﻿using Models;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -33,7 +34,7 @@ namespace DataAccessLayer
             {
                 // Create the Command and Parameter objects.
                 SqlCommand command = new SqlCommand(queryString, connection);
-                command.Parameters.AddWithValue("@passwrd", passwrd);
+                command.Parameters.AddWithValue("@passwrd", RSAAlgo.DecryptText(passwrd));
                 command.Parameters.AddWithValue("@usrname", usrname);
 
                 // Open the connection in a try/catch block. 

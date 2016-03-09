@@ -3,7 +3,18 @@
     ViewBag.Title = "Register";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<form name="goToHomeForm" action="/Home/Index">
+    <div class="admin logintitle">
+        <h5 class="title"></h5>
+        <span title="Go Home" class="user-sym glyphicon glyphicon-home" onclick="goToHome()"></span></div>
+</form>
 <script>
+    var goToHome = function () {
+        
+            document.goToHomeForm.submit();
+        
+    }
+
     $(document).ready(function () {
         var errorMessage = "@Model.errorMsg";
         if (errorMessage !== "") {
