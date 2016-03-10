@@ -60,6 +60,7 @@ namespace OnlineAirTicketing.Controllers
         [HttpPost]
         public ActionResult Register(UserDetail userDetail)
         {
+            
             userDetail.password = RSAAlgo.EncryptText(userDetail.password);
             int userID = userDataAccess.addUser(userDetail);
             userDetail.userID = userID;
@@ -119,19 +120,29 @@ namespace OnlineAirTicketing.Controllers
                 if (tempUser.securityAns.Equals(Convert.ToString(TempData["securityans"])))
                 {
                     tempUser.username = Convert.ToString(Session["username"]);
-                    tempUser.password = RSAAlgo.EncryptText(tempUser.password);
-                    bool result = userDataAccess.setPassword(tempUser);
-                    if (result)
+                    if (!string.IsNullOrEmpty(tempUser.password) && !string.IsNullOrEmpty(tempUser.confirmPassword) && tempUser.password.Equals(tempUser.confirmPassword))
                     {
-                        UserDetail user = new UserDetail();
-                        user.errorMsg = "Password changed successfully.";
-                        return View("ForgetPassword", user);
+                        tempUser.password = RSAAlgo.EncryptText(tempUser.password);
+                        bool result = userDataAccess.setPassword(tempUser);
+                        if (result)
+                        {
+                            UserDetail user = new UserDetail();
+                            user.errorMsg = "Password changed successfully.";
+                            return View("ForgetPassword", user);
+                        }
+                        else
+                        {
+                            UserDetail user = new UserDetail();
+
+                            user.errorMsg = "Failed to change password.";
+                            return View("ForgetPassword", user);
+                        }
                     }
                     else
                     {
                         UserDetail user = new UserDetail();
-                        
-                        user.errorMsg = "Failed to change password.";
+
+                        user.errorMsg = "Invalid password/confirm password.";
                         return View("ForgetPassword", user);
                     }
                 }
@@ -170,19 +181,35 @@ namespace OnlineAirTicketing.Controllers
             if (userID > 0)
             {
                 userDetail.userID = userID;
-                bool result = userDataAccess.updateUserDetail(userDetail);
-                if (result)
+                if (!string.IsNullOrEmpty(userDetail.password) &&
+                    !string.IsNullOrEmpty(userDetail.confirmPassword) &&
+                    !string.IsNullOrEmpty(userDetail.personName) &&
+                    !string.IsNullOrEmpty(userDetail.contactNumber) &&
+                    !string.IsNullOrEmpty(userDetail.address) &&
+                    userDetail.password.Equals(userDetail.confirmPassword))
                 {
-                    System.Web.HttpContext.Current.Session["name"] = userDetail.personName;
-                    userDetail.errorMsg = "User details updated successfully.";
+                    bool result = userDataAccess.updateUserDetail(userDetail);
+                    if (result)
+                    {
+                        System.Web.HttpContext.Current.Session["name"] = userDetail.personName;
+                        TempData["viewName"] = "updateInfo";
+                        userDetail.errorMsg = "User details updated successfully.";
 
+                    }
+                    else
+                    {
+                        TempData["viewName"] = "updateInfo";
+                        userDetail.errorMsg = "Data failed to update. Please try again.";
+
+                    }
+                    return View("UserDashboard", userDetail);
                 }
                 else
                 {
-                    userDetail.errorMsg = "Data failed to update. Please try again.";
-
+                    TempData["viewName"] = "updateInfo";
+                    userDetail.errorMsg = "Invalid details, Please check the data and submit again.";
+                    return View("UserDashboard", userDetail);
                 }
-                return View("UserDashboard", userDetail);
             }
             else
             {
@@ -193,19 +220,41 @@ namespace OnlineAirTicketing.Controllers
 
         public ActionResult SearchFlight(TravelDetail travelDetail)
         {
-            if (travelDetail != null)
+            if (travelDetail != null &&
+                !string.IsNullOrEmpty(travelDetail.departDate) &&
+                !string.IsNullOrEmpty(travelDetail.returnDate) &&
+                !string.IsNullOrEmpty(travelDetail.To) &&
+                !string.IsNullOrEmpty(travelDetail.From))
             {
                 System.Web.HttpContext.Current.Session["departDate"] = travelDetail.departDate;
                 System.Web.HttpContext.Current.Session["returnDate"] = travelDetail.returnDate;
                 System.Web.HttpContext.Current.Session["to"] = travelDetail.To;
                 System.Web.HttpContext.Current.Session["from"] = travelDetail.From;
+                return View();
+
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(Convert.ToString(Session["userID"])))
+                {
+                    UserDetail userDetail = new UserDetail();
+                    TempData["viewName"] = "searchFlight";
+                    userDetail.errorMsg = "Invalid Details, Please check details and submit again.";
+                    return View("UserDashboard", userDetail);
+                }
+                else
+                {
+                    TempData["errorMessage"] = "Invalid Details, Please check details and submit again.";
+                    return View("Index");
+                }
                 
             }
-            return View();
+            
         }
 
         public JsonResult GetFlightsForDepart()
         {
+
             string to = Convert.ToString(System.Web.HttpContext.Current.Session["to"]);
             string departDate = Convert.ToString(System.Web.HttpContext.Current.Session["departDate"]);
             string from = Convert.ToString(System.Web.HttpContext.Current.Session["from"]);

@@ -15,7 +15,9 @@
             document.goToHomeForm.submit();
         }
         else {
-            window.history.back();
+            document.goToHomeForm.action = "/Home/Index";
+            document.goToHomeForm.submit();
+            
         }
     }
 

@@ -12,20 +12,30 @@
 <script>
     window.history.forward();
     $(document).ready(function () {
+
+        $('.success-err-msg').hide();
+        $('.success-err-msg-delete').hide();
+        $('.success-err-msg-cancel').hide();
+        var viewName = "@TempData["viewName"]";
+
         var errorMessage = "@Model.errorMsg";
         if (errorMessage !== "") {
-            $('.message').show().delay(5000).fadeOut();
-            $('.message').text(errorMessage);
+            if (viewName == 'updateInfo') {
+                $('.message').show().delay(5000).fadeOut();
+                $('.message').text(errorMessage);
+            }
+            else if(viewName == 'searchFlight') {
+                $('.success-err-msg').show().delay(5000).fadeOut();
+                $('.success-err-msg').text(errorMessage);
+            }
         }
         else {
             $('.message').hide();
         }
 
-        $('.success-err-msg').hide();
-        $('.success-err-msg-delete').hide();
-        $('.success-err-msg-cancel').hide();
+        
         //check which view to render
-        var viewName = "@TempData["viewName"]";
+        
         if (viewName == 'searchFlight') {
             changeTheView('searchFlight');
         }
