@@ -121,8 +121,8 @@
                     $('.calculation-detail').hide();
                     $('.ticket-detail').find('.depart-flight-time')[0].innerHTML = departFlightToDisplay;
                     $('.ticket-detail').find('.return-flight-time')[0].innerHTML = returnFlightToDisplay;
-                    $('#passenger-name').val(departure.passengerName);
-                    $('#pnr-detail').val("PNR No: " + response.pnr);
+                    $('#passenger-name').text(departure.passengerName);
+                    $('#pnr-detail').text("PNR No: " + response.pnr);
                     $('.success-msg').show().delay(5000).fadeOut();
                     $('.success-msg').text('Reservation Done. Successfully. Please find details');
                     $('.success-msg').css('background-color', '#667C26'); //red #7E3817 //green #667C26
