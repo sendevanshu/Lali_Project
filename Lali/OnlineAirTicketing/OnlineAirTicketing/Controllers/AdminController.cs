@@ -23,12 +23,19 @@ namespace OnlineAirTicketing.Controllers
             return View(adminDetail);
         }
 
+        /// <summary>
+        /// Validates the admin.
+        /// </summary>
+        /// <param name="adminDetail">The admin detail.</param>
+        /// <returns>ActionResult.</returns>
         public ActionResult ValidateAdmin(AdminDetail adminDetail)
         {
             string viewName = string.Empty;
             if (adminDetail != null)
             {
+                //encrypt password
                 adminDetail.password = RSAAlgo.EncryptText(adminDetail.password);
+                //validate the administrator details
                 bool isLoginSuccessful = adminDataAccess.validateAdminCred(adminDetail.username, adminDetail.password);
                 if (!isLoginSuccessful)
                 {
@@ -45,6 +52,11 @@ namespace OnlineAirTicketing.Controllers
             }
         }
 
+        /// <summary>
+        /// Adds the flight.
+        /// </summary>
+        /// <param name="flightDetail">The flight detail.</param>
+        /// <returns>JsonResult.</returns>
         public JsonResult AddFlight(FlightDetail flightDetail)
         {
             int flightID = adminDataAccess.AddFlight(flightDetail);
@@ -52,6 +64,10 @@ namespace OnlineAirTicketing.Controllers
 
         }
 
+        /// <summary>
+        /// Gets the flights.
+        /// </summary>
+        /// <returns>JsonResult.</returns>
         public JsonResult GetFlights()
         {
             List<FlightDetail> flightList = adminDataAccess.GetFlights();
@@ -67,6 +83,11 @@ namespace OnlineAirTicketing.Controllers
             return Json(flightList, JsonRequestBehavior.AllowGet);
         }
 
+        /// <summary>
+        /// Modifies the flight.
+        /// </summary>
+        /// <param name="flightDetail">The flight detail.</param>
+        /// <returns>JsonResult.</returns>
         public JsonResult ModifyFlight(FlightDetail flightDetail)
         {
             List<FlightLegDetail> flightLegList = adminDataAccess.GetFlightLegs(Convert.ToInt32(flightDetail.flightID));
@@ -89,6 +110,11 @@ namespace OnlineAirTicketing.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes the flight.
+        /// </summary>
+        /// <param name="flightID">The flight identifier.</param>
+        /// <returns>JsonResult.</returns>
         public JsonResult DeleteFlight(int flightID)
         {
             bool res = adminDataAccess.DeleteFlight(flightID);
@@ -102,6 +128,10 @@ namespace OnlineAirTicketing.Controllers
             }
         }
 
+        /// <summary>
+        /// Logs the out.
+        /// </summary>
+        /// <returns>ActionResult.</returns>
         public ActionResult LogOut()
         {
             System.Web.HttpContext.Current.Session.RemoveAll();
